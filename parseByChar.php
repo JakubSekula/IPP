@@ -40,7 +40,7 @@ if ( $argc > 1 && $argv[1] == "--help" ){
 $program = fopen( "program", "r" ) or die( "Soubor nelze otevrit nebo neexistuje" );
 
 while ( ( $char = getChar( $program ) ) != NULL ){
-    echo $char." ".Type( ord( $char ) )." "."chr:".ord($char)."|\n";
+    echo $char." ".Type( ord( $char ) )."\n";
 }
 
 fclose( $program );
