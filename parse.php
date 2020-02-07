@@ -1,6 +1,6 @@
 <?php
 
-function getChar( $file ){
+function getLine( $file ){
     $line = fgets( $file );
     if ( ( $line ) || ( $line ) != 'EOF' ){
         return $line;
@@ -39,7 +39,7 @@ if ( $argc > 1 && $argv[1] == "--help" ){
 
 $file = fopen( "program", "r" ) or die( "Soubor nelze otevrit nebo neexistuje" );
 
-while ( ( $line = getChar( $file ) ) != NULL ){
+while ( ( $line = getLine( $file ) ) != NULL ){
     echo $line;
 }
 
