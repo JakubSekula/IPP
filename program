@@ -1,5 +1,5 @@
 .IPPCODE20
-DEFVARGF@counter
+DEFVAR GF@counter
 MOVEGF@counter string@ #Inicializace promenne naprazdny retezec
 #Jednoducha iterace, dokud nebude splnena zadana podminka
 LABEL while
