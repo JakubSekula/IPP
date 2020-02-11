@@ -16,6 +16,9 @@ if ( $argc > 1 && $argv[1] == "--help" ){
 
 $file = fopen( "program", "r" ) or die( "Soubor nelze otevrit nebo neexistuje" );
 
+echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+echo "<program language=\"IPPcode19\">\n";
+
 $FLine = fgets( $file );
 
 $header = "/^.IPPCODE20$/";
@@ -25,8 +28,9 @@ if ( !( preg_match( $header,$FLine ) ) ){
 }
 
 while ( ( $line = getLine( $file ) ) != NULL ){
-    echo $line;
+    //echo $line;
 }
 
+echo "</program>\n";
 fclose( $file );
 ?>
