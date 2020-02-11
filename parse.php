@@ -21,7 +21,7 @@ echo "<program language=\"IPPcode19\">\n";
 
 $FLine = fgets( $file );
 
-$header = "/^.IPPCODE20$/";
+$header = "/^[ ]*.IPPCODE20$/";
 
 if ( !( preg_match( $header,$FLine ) ) ){
     exit( 21 );
