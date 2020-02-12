@@ -48,7 +48,8 @@ if ( $argc > 1 ){
     foreach ( $argv as $arg ){
         if ( $arg == "--help" ){
             $arguments[ 'help' ] = true;
-        } elseif ( preg_match( '/^--source=(")*(\.)*([a-zA-Z]*(\/)*)*(")*$/', $arg ) ){
+        } elseif ( preg_match( '/^--source=(")*(\.)*([a-zA-Z]*(\/)*)*(")*$/', $arg ) ){ // TODO cisla a --source=text//////// projde
+
             $arguments[ 'source' ] = substr( $arg, 9 );
         }
     }
