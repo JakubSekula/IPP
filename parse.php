@@ -18,6 +18,30 @@ function getLine( $file ){
     }
 }
 
+function isKeyWord( $token ){
+    $keyWords = array( "MOVE", "CREATEFRAME", "DEFVAR", "PUSHFRAME", "POPFRAME", "DEFVAR", "CALL", "RETURN", "PUSHS", "POPS", "ADD", "SUB", "MULL", "IDIV", "LT", "LABEL", "JUMPIFEQ", "WRITE", "CONCAT", "JUMP" );
+    if ( !( in_array( $token,$keyWords ) ) ){
+        //echo $token;
+        exit (45);
+    }
+}
+
+function parseLine( $line ){
+    $line = preg_replace( '/\s+/', " ",$line );
+    $parsed = explode( " ", $line );
+    
+    if ( !( preg_match( '/\#/', $parsed[0] ) ) ){
+        isKeyWord( $parsed[0] );
+    }
+
+    foreach( $parsed as $token ){
+        //echo "||$token||";
+        if ( preg_match( '/^#/', $token ) ){
+            return;
+        }
+    }
+}
+
 $arguments = array( 'help' => false, 'source' => '' );
 
 if ( $argc > 1 ){
@@ -28,6 +52,11 @@ if ( $argc > 1 ){
             $arguments[ 'source' ] = substr( $arg, 9 );
         }
     }
+}
+
+if ( $argc > 1 && $arguments[ 'help' ] == false && $arguments[ 'source' ] == '' ){
+    echo "Chyba argumentu"; // TODO
+    exit;
 }
 
 if ( $arguments[ 'help' ] ){
@@ -54,16 +83,31 @@ if ( $file ){
     $FLine = fgets( STDIN );
 }
 
-$header = "/^[ ]*.IPPCODE20$/";
+$header = "/^[ ]*.IPPcode20$/";
 
 if ( !( preg_match( $header,$FLine ) ) ){
     exit( 21 );
 }
 
 while ( ( $line = getLine( $file ) ) != NULL ){
-    echo $line;
+    //echo $line;
+    parseLine( $line );
 }
 
+/* $xml = new XMLWriter();
+$xml->openMemory();
+$xml->startDocument('1.0','UTF-8');
+
+$xml->startElement('program');
+
+$xml->text('Dava smysl');
+//$xml->writeAttribute('language','IPPcode20');
+$xml->endElement();
+
+$xml->endDocument();
+
+echo $xml->outputMemory(); */
+
 //echo "</program>\n";
-//fclose( $file );
+fclose( $file );
 ?>
