@@ -35,13 +35,6 @@ function checkSyntax( $parsed ){
             checkVar( $parsed[ 1 ] );
             checkEnd( $parsed[ 2 ] );
             break;
-        case "AND":
-            echo "Je to AND";
-            break;
-        case "WRITE":
-            checkSymb( $parsed[ 1 ] );
-            checkEnd( $parsed[ 2 ] );
-            break;
         case "LABEL":
             checkLabel( $parsed[ 1 ] );
             checkEnd( $parsed[ 2 ] );
@@ -62,6 +55,165 @@ function checkSyntax( $parsed ){
             checkLabel( $parsed[ 1 ] );
             checkEnd( $parsed[ 2 ] );
             break;
+        case "CREATEFRAME":
+            checkEnd( $parsed[ 1 ] );
+            break;
+        case "PUSHFRAME":
+            checkEnd( $parsed[ 1 ] );
+            break;
+        case "POPFRAME":
+            checkEnd( $parsed[ 1 ] );
+            break;
+        case "CALL":
+            checkVar( $parsed[ 1 ] );
+            checkEnd( $parsed[ 2 ] );
+            break;
+        case "RETURN":
+            checkEnd( $parsed[ 1 ] );
+            break;
+        case "PUSHS":
+            checkSymb( $parsed[ 1 ] );
+            checkEnd( $parsed[ 2 ] );
+            break;
+        case "POPS":
+            checkVar( $parsed[ 1 ] );
+            checkEnd( $parsed[ 2 ] );
+            break;
+        case "ADD":
+            checkVar( $parsed[ 1 ] );
+            checkSymb( $parsed[ 2 ] );
+            checkSymb( $parsed[ 3 ] );
+            checkEnd( $parsed[ 4 ] );
+            break;
+        case "SUB":
+            checkVar( $parsed[ 1 ] );
+            checkSymb( $parsed[ 2 ] );
+            checkSymb( $parsed[ 3 ] );
+            checkEnd( $parsed[ 4 ] );
+            break;
+        case "MULL":
+            checkVar( $parsed[ 1 ] );
+            checkSymb( $parsed[ 2 ] );
+            checkSymb( $parsed[ 3 ] );
+            checkEnd( $parsed[ 4 ] );
+            break;
+        case "IDIV":
+            checkVar( $parsed[ 1 ] );
+            checkSymb( $parsed[ 2 ] );
+            checkSymb( $parsed[ 3 ] );
+            checkEnd( $parsed[ 4 ] );
+            break;
+        case "LT":
+            checkVar( $parsed[ 1 ] );
+            checkSymb( $parsed[ 2 ] );
+            checkSymb( $parsed[ 3 ] );
+            checkEnd( $parsed[ 4 ] );
+            break;
+        case "GT":
+            checkVar( $parsed[ 1 ] );
+            checkSymb( $parsed[ 2 ] );
+            checkSymb( $parsed[ 3 ] );
+            checkEnd( $parsed[ 4 ] );
+            break;
+        case "EQ":
+            checkVar( $parsed[ 1 ] );
+            checkSymb( $parsed[ 2 ] );
+            checkSymb( $parsed[ 3 ] );
+            checkEnd( $parsed[ 4 ] );
+            break;
+        case "AND":
+            checkVar( $parsed[ 1 ] );
+            checkSymb( $parsed[ 2 ] );
+            checkSymb( $parsed[ 3 ] );
+            checkEnd( $parsed[ 4 ] );
+            break;
+        case "OR":
+            checkVar( $parsed[ 1 ] );
+            checkSymb( $parsed[ 2 ] );
+            checkSymb( $parsed[ 3 ] );
+            checkEnd( $parsed[ 4 ] );
+            break;
+        case "NOT":
+            checkVar( $parsed[ 1 ] );
+            checkSymb( $parsed[ 2 ] );
+            checkSymb( $parsed[ 3 ] );
+            checkEnd( $parsed[ 4 ] );
+            break;
+        case "INT2CHAR":
+            checkVar( $parsed[ 1 ] );
+            checkSymb( $parsed[ 2 ] );
+            checkEnd( $parsed[ 3 ] );
+            break;
+        case "STRI2INT":
+            checkVar( $parsed[ 1 ] );
+            checkSymb( $parsed[ 2 ] );
+            checkSymb( $parsed[ 3 ] );
+            checkEnd( $parsed[ 4 ] );
+            break;
+        case "WRITE":
+            checkSymb( $parsed[ 1 ] );
+            checkEnd( $parsed[ 2 ] );
+            break;
+        case "CONCAT":
+            checkVar( $parsed[ 1 ] );
+            checkSymb( $parsed[ 2 ] );
+            checkSymb( $parsed[ 3 ] );
+            checkEnd( $parsed[ 4 ] );
+            break;
+        case "STRLEN":
+            checkVar( $parsed[ 1 ] );
+            checkSymb( $parsed[ 2 ] );
+            checkEnd( $parsed[ 3 ] );
+            break;
+        case "GETCHAR":
+            checkVar( $parsed[ 1 ] );
+            checkSymb( $parsed[ 2 ] );
+            checkSymb( $parsed[ 3 ] );
+            checkEnd( $parsed[ 4 ] );
+            break;
+        case "SETCHAR":
+            checkVar( $parsed[ 1 ] );
+            checkSymb( $parsed[ 2 ] );
+            checkSymb( $parsed[ 3 ] );
+            checkEnd( $parsed[ 4 ] );
+            break;
+        case "TYPE":
+            checkVar( $parsed[ 1 ] );
+            checkSymb( $parsed[ 2 ] );
+            checkEnd( $parsed[ 3 ] );
+            break;
+        case "LABEL":
+            checkLabel( $parsed[ 1 ] );
+            checkEnd( $parsed[ 2 ] );
+            break;
+        case "JUMP":
+            checkLabel( $parsed[ 1 ] );
+            checkEnd( $parsed[ 2 ] );
+            break;
+        case "JUMPIFEQ":
+            checkLabel( $parsed[ 1 ] );
+            checkSymb( $parsed[ 2 ] );
+            checkSymb( $parsed[ 3 ] );
+            checkEnd( $parsed[ 4 ] );
+            break;
+        case "JUMPIFNEQ":
+            checkLabel( $parsed[ 1 ] );
+            checkSymb( $parsed[ 2 ] );
+            checkSymb( $parsed[ 3 ] );
+            checkEnd( $parsed[ 4 ] );
+            break;
+        case "EXIT":
+            checkSymb( $parsed[ 1 ] );
+            checkEnd( $parsed[ 2 ] );
+            break;
+        case "DPRINT":
+            checkSymb( $parsed[ 1 ] );
+            checkEnd( $parsed[ 2 ] );
+            break;
+        case "BREAK":
+            checkEnd( $parsed[ 1 ] );
+            break;
+        
     }
 }
 
@@ -82,7 +234,7 @@ function isKeyWord( $token ){
     $keyWords = array(  "MOVE", "CREATEFRAME", "PUSHFRAME", "POPFRAME", "DEFVAR", "CALL",
                         "RETURN", "PUSHS", "POPS", "ADD", "SUB", "MULL", "IDIV", "LT", "GT",
                         "EQ", "AND", "OR", "INT2CHAR", "STRI2INT", "READ", "WRITE", "STRLEN",
-                        "GETCHAR", "SETCHAR", "NOT", "LABEL", "JUMPIFEQ", "CONCAT", "JUMP",
+                        "GETCHAR", "SETCHAR", "NOT", "LABEL", "JUMPIFEQ", "JUMPIFNEQ", "CONCAT", "JUMP",
                         "TYPE",  "EXIT", "DPRINT", "BREAK" );
     if ( !( in_array( $token,$keyWords ) ) ){
         exit ( 22 );
@@ -133,5 +285,6 @@ while ( ( $line = getLine( $FLine ) ) != NULL ){
 // TODO napriklad WHILE bez parametru vyhodi chybu protoze neni definovan parametr
 // TODO Zeptat se co delat kdyz je kurzor na novem radku na stdin. Kurzor ale na STDIN pokud neni soubor nemuze byt na novem radku ?...
 // TODO je odstraneni prebytecnych mezer korektni osetreni ? Treba: MOVE     GF@counter neni chyba ci ?
+// TODO Type
 
 ?>

@@ -9,3 +9,35 @@ WRITE string@\010
 CONCAT GF@counter GF@counter string@a
 JUMP while
 LABEL end
+CREATEFRAME
+PUSHFRAME
+POPFRAME
+CALL GF@counter
+RETURN
+PUSHS GF@counter
+POPS TF@counter
+ADD GF@counter string@ string@counter
+SUB GF@counter string@ string@counter
+MULL GF@counter string@string string@counter
+IDIV GF@counter string@ string@counter
+LT GF@counter string@ string@counter
+GT GF@counter string@ string@counter
+EQ GF@counter string@ string@counter
+AND GF@counter string@ string@counter
+OR GF@counter string@ string@counter
+NOT GF@counter string@ string@counter
+INT2CHAR GF@counter string@ahoj
+STRI2INT GF@counter string@ string@counter
+WRITE string@Proměnná\032GF@counter\032obsahuje\032
+CONCAT GF@counter string@ string@counter
+STRLEN GF@counter string@ahoj
+GETCHAR GF@counter string@ string@counter
+SETCHAR GF@counter string@ string@counter
+TYPE GF@counter string@testttt
+LABEL neco
+JUMP nekam
+JUMPIFEQ GF@counter string@ string@counter
+JUMPIFNEQ GF@counter string@ string@counter
+EXIT string@asf
+DPRINT string@asfg
+BREAK
