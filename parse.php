@@ -45,8 +45,10 @@ function parseArg( $parsed ){
     } elseif( preg_match( '/^(\w)+$/',$parsed ) ){
         return array( "label", $parsed );
     } else {
-        $twopieces = explode( "@", $parsed );
-        return array( $twopieces[ 0 ], $twopieces[ 1 ] );
+        $pos = strpos( $parsed, "@" );
+        $firstpiece = substr( $parsed, 0, $pos );
+        $secondpiece = substr( $parsed, $pos + 1 );
+        return array( $firstpiece, $secondpiece );
     }
 }
 

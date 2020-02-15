@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<program language="IPPcode20">
+ <instruction order="1" opcode="DEFVAR">
+  <arg1 type="var">GF@coufffnter</arg1>
+ </instruction>
+ <instruction order="2" opcode="MOVE">
+  <arg1 type="var">GF@counfffter</arg1>
+  <arg2 type="string"></arg2>
+ </instruction>
+ <instruction order="3" opcode="LABEL">
+  <arg1 type="label">wh5ile</arg1>
+ </instruction>
+ <instruction order="4" opcode="JUMPIFEQ">
+  <arg1 type="label">end</arg1>
+  <arg2 type="var">GF@coufffnter</arg2>
+  <arg3 type="string">aaa</arg3>
+ </instruction>
+ <instruction order="5" opcode="WRITE">
+  <arg1 type="string">Proměnná\032GF</arg1>
+ </instruction>
+ <instruction order="6" opcode="WRITE">
+  <arg1 type="var">GF@counfffter</arg1>
+ </instruction>
+ <instruction order="7" opcode="WRITE">
+  <arg1 type="string">\010</arg1>
+ </instruction>
+ <instruction order="8" opcode="CONCAT">
+  <arg1 type="var">GF@coufffnter</arg1>
+  <arg2 type="var">GF@counter</arg2>
+  <arg3 type="string">a</arg3>
+ </instruction>
+ <instruction order="9" opcode="JUMP">
+  <arg1 type="label">while</arg1>
+ </instruction>
+ <instruction order="10" opcode="LABEL">
+  <arg1 type="label">end</arg1>
+ </instruction>
+ <instruction order="11" opcode="CREATEFRAME"/>
+ <instruction order="12" opcode="PUSHFRAME"/>
+ <instruction order="13" opcode="POPFRAME"/>
+ <instruction order="14" opcode="CALL">
+  <arg1 type="label">counter</arg1>
+ </instruction>
+ <instruction order="15" opcode="RETURN"/>
+ <instruction order="16" opcode="PUSHS">
+  <arg1 type="var">GF@coffunter</arg1>
+ </instruction>
+ <instruction order="17" opcode="POPS">
+  <arg1 type="var">TF@couffnter</arg1>
+ </instruction>
+ <instruction order="18" opcode="ADD">
+  <arg1 type="var">GF@counffter</arg1>
+  <arg2 type="string"></arg2>
+  <arg3 type="string">counter</arg3>
+ </instruction>
+ <instruction order="19" opcode="SUB">
+  <arg1 type="var">GF@counffter</arg1>
+  <arg2 type="string"></arg2>
+  <arg3 type="string">counter</arg3>
+ </instruction>
+ <instruction order="20" opcode="MUL">
+  <arg1 type="var">GF@couffnter</arg1>
+  <arg2 type="string">string</arg2>
+  <arg3 type="string">counter</arg3>
+ </instruction>
+ <instruction order="21" opcode="IDIV">
+  <arg1 type="var">GF@couffnter</arg1>
+  <arg2 type="string"></arg2>
+  <arg3 type="string">counter</arg3>
+ </instruction>
+ <instruction order="22" opcode="LT">
+  <arg1 type="var">GF@counffter</arg1>
+  <arg2 type="string"></arg2>
+  <arg3 type="string">counter</arg3>
+ </instruction>
+ <instruction order="23" opcode="GT">
+  <arg1 type="var">GF@couffnter</arg1>
+  <arg2 type="string"></arg2>
+  <arg3 type="string">counter</arg3>
+ </instruction>
+ <instruction order="24" opcode="EQ">
+  <arg1 type="var">GF@couffnter</arg1>
+  <arg2 type="string"></arg2>
+  <arg3 type="string">counter</arg3>
+ </instruction>
+ <instruction order="25" opcode="AND">
+  <arg1 type="var">GF@couffnter</arg1>
+  <arg2 type="string"></arg2>
+  <arg3 type="string">counter</arg3>
+ </instruction>
+ <instruction order="26" opcode="OR">
+  <arg1 type="var">GF@couffnter</arg1>
+  <arg2 type="string"></arg2>
+  <arg3 type="string">counter</arg3>
+ </instruction>
+ <instruction order="27" opcode="NOT">
+  <arg1 type="var">GF@neco</arg1>
+  <arg2 type="string"></arg2>
+ </instruction>
+ <instruction order="28" opcode="INT2CHAR">
+  <arg1 type="var">GF@couffnter</arg1>
+  <arg2 type="string">ahoj</arg2>
+ </instruction>
+ <instruction order="29" opcode="STRI2INT">
+  <arg1 type="var">GF@counffter</arg1>
+  <arg2 type="string"></arg2>
+  <arg3 type="string">counter</arg3>
+ </instruction>
+ <instruction order="30" opcode="WRITE">
+  <arg1 type="string">Proměnná\032GF</arg1>
+ </instruction>
+ <instruction order="31" opcode="CONCAT">
+  <arg1 type="var">GF@counffter</arg1>
+  <arg2 type="string"></arg2>
+  <arg3 type="string">counter</arg3>
+ </instruction>
+ <instruction order="32" opcode="STRLEN">
+  <arg1 type="var">GF@couffnter</arg1>
+  <arg2 type="string">ahoj</arg2>
+ </instruction>
+ <instruction order="33" opcode="GETCHAR">
+  <arg1 type="var">GF@coffunter</arg1>
+  <arg2 type="string"></arg2>
+  <arg3 type="string">counter</arg3>
+ </instruction>
+ <instruction order="34" opcode="SETCHAR">
+  <arg1 type="var">GF@couffnter</arg1>
+  <arg2 type="string"></arg2>
+  <arg3 type="string">counter</arg3>
+ </instruction>
+ <instruction order="35" opcode="TYPE">
+  <arg1 type="var">GF@counteffr</arg1>
+  <arg2 type="string">testttt</arg2>
+ </instruction>
+ <instruction order="36" opcode="LABEL">
+  <arg1 type="label">neco</arg1>
+ </instruction>
+ <instruction order="37" opcode="JUMP">
+  <arg1 type="label">nekam</arg1>
+ </instruction>
+ <instruction order="38" opcode="JUMPIFEQ">
+  <arg1 type="label">navesti</arg1>
+  <arg2 type="string"></arg2>
+  <arg3 type="string">counter</arg3>
+ </instruction>
+ <instruction order="39" opcode="JUMPIFNEQ">
+  <arg1 type="label">navesti</arg1>
+  <arg2 type="string"></arg2>
+  <arg3 type="string">counter</arg3>
+ </instruction>
+ <instruction order="40" opcode="EXIT">
+  <arg1 type="string">asf</arg1>
+ </instruction>
+ <instruction order="41" opcode="DPRINT">
+  <arg1 type="string">asfg</arg1>
+ </instruction>
+ <instruction order="42" opcode="BREAK"/>
+ <instruction order="43" opcode="MOVE">
+  <arg1 type="var">GF@counter</arg1>
+  <arg2 type="nil">nil</arg2>
+ </instruction>
+ <instruction order="44" opcode="BREAK"/>
+</program>
