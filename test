@@ -25,7 +25,7 @@ GT GF@couffnter string@ string@counter
 EQ GF@couffnter string@ string@counter
 AND GF@couffnter string@ string@counter
 OR GF@couffnter string@ string@counter
-NOT GF@neco string@
+NOT GF@couffnter string@sds
 INT2CHAR GF@couffnter string@ahoj
 STRI2INT GF@counffter string@ string@counter
 WRITE string@Proměnná\032GF@counter\032obsahuje\032
@@ -41,4 +41,4 @@ JUMPIFNEQ navesti string@ string@counter
 EXIT string@asf
 DPRINT string@asfg
 BREAK
-MOVE GF@counter nil@nil
+MOVE GF@counter LF@test
