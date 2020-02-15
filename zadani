@@ -1,6 +1,6 @@
 .IPPcode20
 DEFVAR GF@counter
-MOVE GF@counter string@ #Inicializaceproměnnénaprázdnýřetězec
+MOVE GF@counter string@ #proctonejde
 #Jednoducháiterace,dokudnebudesplněnazadanápodmínka
 LABEL while
 JUMPIFEQ end GF@counter string@aaa

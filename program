@@ -42,3 +42,4 @@ EXIT string@asf
 DPRINT string@asfg
 BREAK
 MOVE GF@counter nil@nil
+BREAK

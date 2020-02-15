@@ -8,7 +8,6 @@ $xml = new XMLWriter();
 
 function checkVar( $parsed ){
     if ( !preg_match( '/^((TF)|(GF)|(LF))@((\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?)){0,1}(\w)+$/', $parsed ) ){
-        echo $parsed."\n";
         exit( 23 );
     }
 }
@@ -18,21 +17,24 @@ function checkEnd( $parsed ){
         $parsed = "";
     } 
     if ( $parsed != "" ){
-        echo $parsed."\n";
         exit ( 23 );
     }
 }
 
 function checkSymb( $parsed ){
     if ( !preg_match( '/^(string@(\S)*)$|^(int@(\d)*)$|(bool@((true)|(false)))$|^((GF)|(TF)|(LF))@(\S)*$|^(nil)@nil$/', $parsed ) ){
-        echo $parsed."\n";
         exit( 23 );
     }
 }
 
 function checkLabel( $parsed ){
     if ( !preg_match( '/^(\w)*$/', $parsed ) ){
-        echo $parsed."\n";
+        exit( 23 );
+    }
+}
+
+function checkType( $parsed ){
+    if ( !preg_match( '/^((int)|(bool)|(string))$/', $parsed ) ){
         exit( 23 );
     }
 }
@@ -88,97 +90,116 @@ function checkSyntax( $parsed, $xml, $order ){
             break;
         case "CREATEFRAME":
             checkEnd( $parsed[ 1 ] );
+            caseXml( 0, "CREATEFRAME", $order, $xml, $parsed );
             break;
         case "PUSHFRAME":
             checkEnd( $parsed[ 1 ] );
+            caseXml( 0, "PUSHFRAME", $order, $xml, $parsed );
             break;
         case "POPFRAME":
             checkEnd( $parsed[ 1 ] );
+            caseXml( 0, "POPFRAME", $order, $xml, $parsed );
             break;
         case "CALL":
             checkLabel( $parsed[ 1 ] );
             checkEnd( $parsed[ 2 ] );
+            caseXml( 1, "CALL", $order, $xml, $parsed );
             break;
         case "RETURN":
             checkEnd( $parsed[ 1 ] );
+            caseXml( 0, "RETURN", $order, $xml, $parsed );
             break;
         case "PUSHS":
             checkSymb( $parsed[ 1 ] );
             checkEnd( $parsed[ 2 ] );
+            caseXml( 1, "PUSHS", $order, $xml, $parsed );
             break;
         case "POPS":
             checkVar( $parsed[ 1 ] );
             checkEnd( $parsed[ 2 ] );
+            caseXml( 1, "POPS", $order, $xml, $parsed );
             break;
         case "ADD":
             checkVar( $parsed[ 1 ] );
             checkSymb( $parsed[ 2 ] );
             checkSymb( $parsed[ 3 ] );
             checkEnd( $parsed[ 4 ] );
+            caseXml( 3, "ADD", $order, $xml, $parsed );
             break;
         case "SUB":
             checkVar( $parsed[ 1 ] );
             checkSymb( $parsed[ 2 ] );
             checkSymb( $parsed[ 3 ] );
             checkEnd( $parsed[ 4 ] );
+            caseXml( 3, "SUB", $order, $xml, $parsed );
             break;
-        case "MULL":
+        case "MUL":
             checkVar( $parsed[ 1 ] );
             checkSymb( $parsed[ 2 ] );
             checkSymb( $parsed[ 3 ] );
             checkEnd( $parsed[ 4 ] );
+            caseXml( 3, "MUL", $order, $xml, $parsed );
             break;
         case "IDIV":
             checkVar( $parsed[ 1 ] );
             checkSymb( $parsed[ 2 ] );
             checkSymb( $parsed[ 3 ] );
             checkEnd( $parsed[ 4 ] );
+            caseXml( 3, "IDIV", $order, $xml, $parsed );
             break;
         case "LT":
             checkVar( $parsed[ 1 ] );
             checkSymb( $parsed[ 2 ] );
             checkSymb( $parsed[ 3 ] );
             checkEnd( $parsed[ 4 ] );
+            caseXml( 3, "LT", $order, $xml, $parsed );
             break;
         case "GT":
             checkVar( $parsed[ 1 ] );
             checkSymb( $parsed[ 2 ] );
             checkSymb( $parsed[ 3 ] );
             checkEnd( $parsed[ 4 ] );
+            caseXml( 3, "GT", $order, $xml, $parsed );
             break;
         case "EQ":
             checkVar( $parsed[ 1 ] );
             checkSymb( $parsed[ 2 ] );
             checkSymb( $parsed[ 3 ] );
             checkEnd( $parsed[ 4 ] );
+            caseXml( 3, "EQ", $order, $xml, $parsed );
             break;
         case "AND":
             checkVar( $parsed[ 1 ] );
             checkSymb( $parsed[ 2 ] );
             checkSymb( $parsed[ 3 ] );
             checkEnd( $parsed[ 4 ] );
+            caseXml( 3, "AND", $order, $xml, $parsed );
             break;
         case "OR":
             checkVar( $parsed[ 1 ] );
             checkSymb( $parsed[ 2 ] );
             checkSymb( $parsed[ 3 ] );
             checkEnd( $parsed[ 4 ] );
+            caseXml( 3, "OR", $order, $xml, $parsed );
             break;
         case "NOT":
             checkVar( $parsed[ 1 ] );
             checkSymb( $parsed[ 2 ] );
             checkEnd( $parsed[ 3 ] );
+            caseXml( 2, "NOT", $order, $xml, $parsed );
             break;
         case "INT2CHAR":
             checkVar( $parsed[ 1 ] );
             checkSymb( $parsed[ 2 ] );
             checkEnd( $parsed[ 3 ] );
+            caseXml( 2, "INT2CHAR", $order, $xml, $parsed );
             break;
         case "STRI2INT":
             checkVar( $parsed[ 1 ] );
             checkSymb( $parsed[ 2 ] );
             checkSymb( $parsed[ 3 ] );
             checkEnd( $parsed[ 4 ] );
+            caseXml( 3, "STRI2INT", $order, $xml, $parsed );
             break;
         case "WRITE":
             checkSymb( $parsed[ 1 ] );
@@ -196,23 +217,27 @@ function checkSyntax( $parsed, $xml, $order ){
             checkVar( $parsed[ 1 ] );
             checkSymb( $parsed[ 2 ] );
             checkEnd( $parsed[ 3 ] );
+            caseXml( 2, "STRLEN", $order, $xml, $parsed );
             break;
         case "GETCHAR":
             checkVar( $parsed[ 1 ] );
             checkSymb( $parsed[ 2 ] );
             checkSymb( $parsed[ 3 ] );
             checkEnd( $parsed[ 4 ] );
+            caseXml( 3, "GETCHAR", $order, $xml, $parsed );
             break;
         case "SETCHAR":
             checkVar( $parsed[ 1 ] );
             checkSymb( $parsed[ 2 ] );
             checkSymb( $parsed[ 3 ] );
             checkEnd( $parsed[ 4 ] );
+            caseXml( 3, "SETCHAR", $order, $xml, $parsed );
             break;
         case "TYPE":
             checkVar( $parsed[ 1 ] );
             checkSymb( $parsed[ 2 ] );
             checkEnd( $parsed[ 3 ] );
+            caseXml( 2, "TYPE", $order, $xml, $parsed );
             break;
         case "JUMP":
             checkLabel( $parsed[ 1 ] );
@@ -231,17 +256,21 @@ function checkSyntax( $parsed, $xml, $order ){
             checkSymb( $parsed[ 2 ] );
             checkSymb( $parsed[ 3 ] );
             checkEnd( $parsed[ 4 ] );
+            caseXml( 3, "JUMPIFNEQ", $order, $xml, $parsed );
             break;
         case "EXIT":
             checkSymb( $parsed[ 1 ] );
             checkEnd( $parsed[ 2 ] );
+            caseXml( 1, "EXIT", $order, $xml, $parsed );    
             break;
         case "DPRINT":
             checkSymb( $parsed[ 1 ] );
             checkEnd( $parsed[ 2 ] );
+            caseXml( 1, "DPRINT", $order, $xml, $parsed );
             break;
         case "BREAK":
             checkEnd( $parsed[ 1 ] );
+            caseXml( 0, "BREAK", $order, $xml, $parsed );
             break;
         
     }

@@ -1,44 +1,11 @@
 .IPPcode20
-DEFVAR GF@coufffnter
-MOVE GF@counfffter string@
-LABEL wh5ile
-JUMPIFEQ end GF@coufffnter string@aaa
-WRITE string@Proměnná\032GF@counter\032obsahuje\032
-WRITE GF@counfffter
+DEFVAR GF@counter
+MOVE GF@counter string@ #Inicializace promenné na prázdný retezec #Jednoduchá iterace, dokud nebude splnena zadaná podmínka
+LABEL while
+JUMPIFEQ end GF@counter string@aaa
+WRITE string@counter\032obsahuje\032
+WRITE GF@counter
 WRITE string@\010
-CONCAT GF@coufffnter GF@counter string@a
+CONCAT GF@counter GF@counter string@a
 JUMP while
 LABEL end
-CREATEFRAME
-PUSHFRAME
-POPFRAME
-CALL counter
-RETURN
-PUSHS GF@coffunter
-POPS TF@couffnter
-ADD GF@counffter string@ string@counter
-SUB GF@counffter string@ string@counter
-MUL GF@couffnter string@string string@counter
-IDIV GF@couffnter string@ string@counter
-LT GF@counffter string@ string@counter
-GT GF@couffnter string@ string@counter
-EQ GF@couffnter string@ string@counter
-AND GF@couffnter string@ string@counter
-OR GF@couffnter string@ string@counter
-NOT GF@couffnter string@sds
-INT2CHAR GF@couffnter string@ahoj
-STRI2INT GF@counffter string@ string@counter
-WRITE string@Proměnná\032GF@counter\032obsahuje\032
-CONCAT GF@counffter string@ string@counter
-STRLEN GF@couffnter string@ahoj
-GETCHAR GF@coffunter string@ string@counter
-SETCHAR GF@couffnter string@ string@counter
-TYPE GF@counteffr string@testttt
-LABEL neco
-JUMP nekam
-JUMPIFEQ navesti string@ string@counter
-JUMPIFNEQ navesti string@ string@counter
-EXIT string@asf
-DPRINT string@asfg
-BREAK
-MOVE GF@counter LF@test
