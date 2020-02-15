@@ -22,7 +22,7 @@ function checkEnd( $parsed ){
 }
 
 function checkSymb( $parsed ){
-    if ( !preg_match( '/^(string@(\S)*)$|^(int@(\d)*)$|(bool@((true)|(false)))$|^((GF)|(TF)|(LF))@(\S)*$|^(nil)@nil$/', $parsed ) ){
+    if ( !preg_match( '/^(string@(\S)*)$|^(int@((\-)|(\+)){0,1}(\d)*)$|(bool@((true)|(false)))$|^((GF)|(TF)|(LF))@(\S)*$|^(nil)@nil$/', $parsed ) ){
         exit( 23 );
     }
 }
@@ -364,13 +364,6 @@ echo $xml->outputMemory();
 
 // TODO podoba label
 // TODO napriklad WHILE bez parametru vyhodi chybu protoze neni definovan parametr
-// TODO Zeptat se co delat kdyz je kurzor na novem radku na stdin. Kurzor ale na STDIN pokud neni soubor nemuze byt na novem radku ?...
 // TODO je odstraneni prebytecnych mezer korektni osetreni ? Treba: MOVE     GF@counter neni chyba ci ?
-// TODO Type
-// TODO znamenka u cisel
-// odstraneni mezer je korekntni ?
-// substituce znaku <> a cosi jeste
-// opravit mezery
-// NOT ma pouze 2 operandy
 
 ?>
