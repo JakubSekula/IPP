@@ -7,7 +7,7 @@ $order = 0;
 $xml = new XMLWriter();
 
 function checkVar( $parsed ){
-    if ( !preg_match( '/^((TF)|(GF)|(LF))@((\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?)){0,1}(\w)+$/', $parsed ) ){
+    if ( !preg_match( '/^((TF)|(GF)|(LF))@((\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?)|[a-zA-Z]){1}(\S)+$/', $parsed ) ){
         exit( 23 );
     }
 }
@@ -40,7 +40,7 @@ function checkType( $parsed ){
 }
 
 function parseArg( $parsed ){
-    if ( preg_match( '/^((GF)|(TF)|(LF))@(\w)*$/', $parsed ) ){
+    if ( preg_match( '/^((GF)|(TF)|(LF))@(\S)*$/', $parsed ) ){
         return array( "var", $parsed );
     } elseif( preg_match( '/^(\w)+$/',$parsed ) ){
         return array( "label", $parsed );
@@ -48,6 +48,9 @@ function parseArg( $parsed ){
         $pos = strpos( $parsed, "@" );
         $firstpiece = substr( $parsed, 0, $pos );
         $secondpiece = substr( $parsed, $pos + 1 );
+        $secondpiece = preg_replace( '/\&/', "&amp;", $secondpiece );
+        $secondpiece = preg_replace( '/\</', "&lt;", $secondpiece );
+        $secondpiece = preg_replace( '/\>/', "&gt;", $secondpiece );
         return array( $firstpiece, $secondpiece );
     }
 }
