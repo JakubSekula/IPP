@@ -12,18 +12,18 @@ $jumps;
 $order = 0;
 $xml = new XMLWriter();
 
-function writeStatp( $arrayargs ){
+function writeStatp( $arrayargs, $path ){
     global $loc;
     global $comments;
     global $jumps;
     global $labels;
 
-    echo "loc: $loc\n";
+    /* echo "loc: $loc\n";
     echo "comments: $comments\n";
     echo "jumps: $jumps\n";
-    echo "labels: $labels\n";
+    echo "labels: $labels\n"; */
 
-    $file = fopen( "statp", "w" );
+    $file = fopen( $path, "w" );
 
     foreach( $arrayargs as $arg ){
         if ( $arg == 'loc' ){
@@ -39,7 +39,7 @@ function writeStatp( $arrayargs ){
     fclose( $file );
 }
 
-function checkArgs( $help_argument, $arrayargs ){
+function checkArgs( $help_argument, $arrayargs, $filePath ){
     global $statp;
     $statp = 0;
 
@@ -409,6 +409,7 @@ function parseLine( $line, $xml ){
 
 $help_argument = array();
 $arrayargs = array();
+$filePath = "";
 
 if ( $argc > 1 ){
     foreach( $argv as $current ){
@@ -417,8 +418,11 @@ if ( $argc > 1 ){
         }
         if ( preg_match( '/^--help$/', $current ) ){
             array_push( $help_argument, 'help' );
-        } elseif ( preg_match( '/^--stats=/', $current ) ) {
+        } elseif ( preg_match( '/^--stats=((..\/)*(\w+)(\/){0,1})+$/', $current ) ) {
+            $pos = strpos( $current, "=" );
+            $path = substr( $current, $pos + 1 );
             array_push( $arrayargs, "$current" );
+            $filePath = $path;
         } elseif( preg_match( '/^--loc$/', $current ) ){
             array_push( $arrayargs, 'loc' );
         } elseif( preg_match( '/^--comments$/', $current ) ){
@@ -433,7 +437,7 @@ if ( $argc > 1 ){
     }
 }
 
-checkArgs( $help_argument, $arrayargs );
+checkArgs( $help_argument, $arrayargs, $filePath );
 
 $FLine = fgets( STDIN );
 
@@ -462,7 +466,7 @@ $xml->endDocument();
 
 echo $xml->outputMemory();
 
-writeStatp( $arrayargs );
+writeStatp( $arrayargs, $filePath );
 
 // TODO podoba label
 // TODO napriklad WHILE bez parametru vyhodi chybu protoze neni definovan parametr
@@ -471,5 +475,7 @@ writeStatp( $arrayargs );
 // TODO prazdne radky i pred hlavickou  // fixed
 // TOTO dodelat rozsireni, nyni funguje i jenom treba --loc ( coz asi neni uplne cool ) + zapis do souboru
 // TODO spravna podoba nil@nil
+// TODO u cesty nefunguje ^ nevim jestli ma
+
 
 ?>
