@@ -1,4 +1,9 @@
+
+
 .IPPcode20
-DEFVAR GF@te&stat<gag>gag
+DEFVAR GF@&testatgaggag
+#heej
+LABEL move #testtt
 MOVE GF@counter bool@true
 MOVE GF@counter int@-4
+JUMP move

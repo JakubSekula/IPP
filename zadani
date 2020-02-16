@@ -9,4 +9,7 @@ WRITE GF@counter
 WRITE string@\010
 CONCAT GF@counter GF@counter string@a
 JUMP while
+JUMP test
+LABEL hejhoe
+LABEL testtoo
 LABEL end

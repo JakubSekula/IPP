@@ -1,13 +1,74 @@
 <?php
 
 global $xml;
-global $order;
+$order;
+$test;
+
+// Rozsireni
+$loc;
+$comments;
+$jumps;
 
 $order = 0;
 $xml = new XMLWriter();
 
+function writeStatp( $arrayargs ){
+    global $loc;
+    global $comments;
+    global $jumps;
+    global $labels;
+
+    echo "loc: $loc\n";
+    echo "comments: $comments\n";
+    echo "jumps: $jumps\n";
+    echo "labels: $labels\n";
+
+    $file = fopen( "statp", "w" );
+
+    foreach( $arrayargs as $arg ){
+        if ( $arg == 'loc' ){
+            fwrite( $file, "$loc\n" );
+        } elseif ( $arg == 'comments' ){
+            fwrite( $file, "$comments\n" );
+        } elseif( $arg == 'jumps' ){
+            fwrite( $file, "$jumps\n" );
+        } elseif( $arg == 'label' ){
+            fwrite( $file, "$labels\n" );
+        }
+    }
+    fclose( $file );
+}
+
+function checkArgs( $help_argument, $arrayargs ){
+    global $statp;
+    $statp = 0;
+
+    if ( ( count( $help_argument ) == 1 ) && ( count( $arrayargs ) != 0 ) ){
+        exit( 10 );
+    } elseif( ( count( $help_argument ) == 1 ) && ( count( $arrayargs ) == 0 ) ){
+        echo "Skript typu filtr (parse.php v jazyce PHP 7.4) nacte ze standardniho vstupu zdrojovy kod v IPP-code20, zkontroluje \nlexikalni a syntaktickou spravnost kodu a vypise na standardni vystup XML reprezentaci programu dle specifikace v sekci.\n";
+        exit;
+    } elseif( ( count( $help_argument ) == 0 ) && ( count( $arrayargs ) != 0 ) ){
+        $stats = false;
+        $different = false;
+        foreach( $arrayargs as $arg ){
+            if ( preg_match( '/^--stats=/', $arg ) ){
+                $stats = true;
+            } else {
+                $different = true;
+            }
+        }
+        if ( $stats == false ){
+            exit ( 10 );
+        }
+    } else {
+        exit( 10 );
+    }
+    
+}
+
 function checkVar( $parsed ){
-    if ( !preg_match( '/^((TF)|(GF)|(LF))@((\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?)|[a-zA-Z]){1}(\S)+$/', $parsed ) ){
+    if ( !preg_match( '/^((TF)|(GF)|(LF))@((\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?)|[a-zA-Z]){1}((\d)|([a-zA-Z]))+$/', $parsed ) ){
         exit( 23 );
     }
 }
@@ -48,9 +109,13 @@ function parseArg( $parsed ){
         $pos = strpos( $parsed, "@" );
         $firstpiece = substr( $parsed, 0, $pos );
         $secondpiece = substr( $parsed, $pos + 1 );
+     
         $secondpiece = preg_replace( '/\&/', "&amp;", $secondpiece );
         $secondpiece = preg_replace( '/\</', "&lt;", $secondpiece );
         $secondpiece = preg_replace( '/\>/', "&gt;", $secondpiece );
+        $secondpiece = preg_replace( '/\"/', "&quot;", $secondpiece );
+        $secondpiece = preg_replace( '/\'/', "&apos;", $secondpiece );
+
         return array( $firstpiece, $secondpiece );
     }
 }
@@ -75,7 +140,16 @@ function caseXml( $iter, $opcode, $order, $xml, $parsed ){
     $xml->endElement();
 }
 
-function checkSyntax( $parsed, $xml, $order ){
+function checkSyntax( $parsed, $xml ){
+    
+    global $order;
+    global $loc;
+    global $labels;
+    global $jumps;
+
+    $loc++;
+    $order++;
+
     switch( $parsed[ 0 ] ){
         case "MOVE":
             checkVar( $parsed[ 1 ] );
@@ -89,6 +163,7 @@ function checkSyntax( $parsed, $xml, $order ){
             caseXml( 1, "DEFVAR", $order, $xml, $parsed );
             break;
         case "LABEL":
+            $labels++;
             checkLabel( $parsed[ 1 ] );
             checkEnd( $parsed[ 2 ] );
             caseXml( 1, "LABEL", $order, $xml, $parsed );
@@ -245,11 +320,13 @@ function checkSyntax( $parsed, $xml, $order ){
             caseXml( 2, "TYPE", $order, $xml, $parsed );
             break;
         case "JUMP":
+            $jumps++;
             checkLabel( $parsed[ 1 ] );
             checkEnd( $parsed[ 2 ] );
             caseXml( 1, "JUMP", $order, $xml, $parsed );
             break;
         case "JUMPIFEQ":
+            $jumps++;
             checkLabel( $parsed[ 1 ] );
             checkSymb( $parsed[ 2 ] );
             checkSymb( $parsed[ 3 ] );
@@ -257,6 +334,7 @@ function checkSyntax( $parsed, $xml, $order ){
             caseXml( 3, "JUMPIFEQ", $order, $xml, $parsed );
             break;
         case "JUMPIFNEQ":
+            $jumps++;
             checkLabel( $parsed[ 1 ] );
             checkSymb( $parsed[ 2 ] );
             checkSymb( $parsed[ 3 ] );
@@ -291,6 +369,9 @@ function returnLine( $line ){
 
 function getLine( $file ){
     $line = fgets( STDIN );
+    while ( $line == "\n" ){
+        $line = fgets( STDIN );
+    }
     return returnLine( $line );
 }
 
@@ -306,36 +387,59 @@ function isKeyWord( $token ){
     return;
 }
 
-function parseLine( $line, $xml, $order ){
+function parseLine( $line, $xml ){
+
+    global $comments;
+
     $line = preg_replace( '/\s+/', " ",$line );
     $parsed = explode( " ", $line );
 
     if ( !( preg_match( '/\#/', $parsed[0] ) ) ){
         isKeyWord( $parsed[0] );
-        checkSyntax( $parsed, $xml, $order );
+        checkSyntax( $parsed, $xml );
     }
 
     foreach( $parsed as $token ){
         if ( preg_match( '/^#/', $token ) ){
-            $order;
+            $comments++;
             return;
         }
     }
 }
 
-$arguments = array( 'help' => false );
+$help_argument = array();
+$arrayargs = array();
 
 if ( $argc > 1 ){
-    if ( $argv[ 1 ] == "--help" ){
-        echo "Skript typu filtr (parse.php v jazyce PHP 7.4) nacte ze standardniho vstupu zdrojovy kod v IPP-code20, zkontroluje \nlexikalni a syntaktickou spravnost kodu a vypise na standardni vystup XML reprezentaci programu dle specifikace v sekci.\n";
-        exit;
-    } else {
-        exit ( 10 );
+    foreach( $argv as $current ){
+        if ( $current == "parse.php" ){
+            continue;
+        }
+        if ( preg_match( '/^--help$/', $current ) ){
+            array_push( $help_argument, 'help' );
+        } elseif ( preg_match( '/^--stats=/', $current ) ) {
+            array_push( $arrayargs, "$current" );
+        } elseif( preg_match( '/^--loc$/', $current ) ){
+            array_push( $arrayargs, 'loc' );
+        } elseif( preg_match( '/^--comments$/', $current ) ){
+            array_push( $arrayargs, 'comments' );
+        } elseif( preg_match( '/^--labels$/', $current ) ){
+            array_push( $arrayargs, 'label' );
+        } elseif( preg_match( '/^--jumps$/', $current ) ){
+            array_push( $arrayargs, 'jumps' );
+        } else {
+            exit( 10 );
+        }
     }
 }
 
+checkArgs( $help_argument, $arrayargs );
+
 $FLine = fgets( STDIN );
 
+while ( $FLine == "\n" ){
+    $FLine = fgets( STDIN );
+}
 
 $xml->openMemory();
 $xml->setIndent(true);
@@ -351,19 +455,21 @@ if ( !( preg_match( $header,$FLine ) ) ){
 }
 
 while ( ( $line = getLine( $FLine ) ) != NULL ){
-    if ( !preg_match( '/^#/', $line ) ){
-        $order++;
-    }
-    parseLine( $line, $xml, $order );
+    parseLine( $line, $xml );
 }
-
 $xml->endElement();
 $xml->endDocument();
 
 echo $xml->outputMemory();
 
+writeStatp( $arrayargs );
+
 // TODO podoba label
 // TODO napriklad WHILE bez parametru vyhodi chybu protoze neni definovan parametr
 // TODO je odstraneni prebytecnych mezer korektni osetreni ? Treba: MOVE     GF@counter neni chyba ci ?
+// TODO regex pro vstupni path
+// TODO prazdne radky i pred hlavickou  // fixed
+// TOTO dodelat rozsireni, nyni funguje i jenom treba --loc ( coz asi neni uplne cool ) + zapis do souboru
+// TODO spravna podoba nil@nil
 
 ?>
