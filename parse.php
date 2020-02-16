@@ -3,6 +3,7 @@
 global $xml;
 $order;
 $test;
+$args = 0;
 
 // Rozsireni
 $loc;
@@ -61,7 +62,10 @@ function checkArgs( $help_argument, $arrayargs, $filePath ){
         if ( $stats == false ){
             exit ( 10 );
         }
+    } elseif( ( count( $help_argument ) == 0 ) && ( count( $arrayargs ) == 0 ) ){ 
+    
     } else {
+        echo "Tady JE probelm\n";
         exit( 10 );
     }
     
@@ -423,6 +427,7 @@ if ( $argc > 1 ){
             $path = substr( $current, $pos + 1 );
             array_push( $arrayargs, "$current" );
             $filePath = $path;
+            $args = 1;
         } elseif( preg_match( '/^--loc$/', $current ) ){
             array_push( $arrayargs, 'loc' );
         } elseif( preg_match( '/^--comments$/', $current ) ){
@@ -442,6 +447,7 @@ checkArgs( $help_argument, $arrayargs, $filePath );
 $FLine = fgets( STDIN );
 
 while ( $FLine == "\n" ){
+    echo "$FLine\n";
     $FLine = fgets( STDIN );
 }
 
@@ -466,7 +472,9 @@ $xml->endDocument();
 
 echo $xml->outputMemory();
 
-writeStatp( $arrayargs, $filePath );
+if ( $args ==  1 ){
+    writeStatp( $arrayargs, $filePath );
+}
 
 // TODO podoba label
 // TODO napriklad WHILE bez parametru vyhodi chybu protoze neni definovan parametr
