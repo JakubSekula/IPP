@@ -476,6 +476,6 @@ writeStatp( $arrayargs, $filePath );
 // TOTO dodelat rozsireni, nyni funguje i jenom treba --loc ( coz asi neni uplne cool ) + zapis do souboru
 // TODO spravna podoba nil@nil
 // TODO u cesty nefunguje ^ nevim jestli ma
-
+// TODO poresit EXIT <symb>
 
 ?>
