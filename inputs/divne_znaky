@@ -1,0 +1,9 @@
+
+
+ .IPPcode20
+DEFVAR GF@neco
+
+JUMP label
+JUMP test
+
+#test
