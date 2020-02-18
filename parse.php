@@ -6,13 +6,10 @@ $type;
 $order;
 $test;
 $args = 0;
-
-// Rozsireni
-$loc = 0;
 $comments = 0;
 $jumps = 0;
-
 $order = 0;
+
 $xml = new XMLWriter();
 
 function incrementOrder(){
@@ -26,21 +23,16 @@ function incrementComment(){
 }
 
 function writeStatp( $arrayargs, $path ){
-    global $loc;
     global $comments;
     global $jumps;
     global $labels;
-
-    /* echo "loc: $loc\n";
-    echo "comments: $comments\n";
-    echo "jumps: $jumps\n";
-    echo "labels: $labels\n"; */
+    global $order;
 
     $file = fopen( $path, "w" );
 
     foreach( $arrayargs as $arg ){
         if ( $arg == 'loc' ){
-            fwrite( $file, "$loc\n" );
+            fwrite( $file, "$order\n" );
         } elseif ( $arg == 'comments' ){
             fwrite( $file, "$comments\n" );
         } elseif( $arg == 'jumps' ){
@@ -100,15 +92,15 @@ function checkEnd( $parsed ){
 }
 
 function definedEnd( $parsed, $index ){
+    incrementOrder();
     if ( isset( $parsed[ $index ] ) ){
         checkEnd( $parsed[ $index ] );
-        incrementOrder();
     }
 
 }
 
 function checkSymb( $parsed ){
-    if ( !preg_match( '/(*UTF8)^(string@(\S)*)$|^(int@((\-)|(\+)){0,1}(\p{N})*)$|(bool@((true)|(false)))$|^((GF)|(TF)|(LF))@(\S)*$|^(nil)@nil$/i', $parsed ) ){
+    if ( !preg_match( '/(*UTF8)^([^#\s\\\\]|\\\\[0-9]{3})*$|^(int@((\-)|(\+)){0,1}(\p{N})*)$|(bool@((true)|(false)))$|^((GF)|(TF)|(LF))@(\S)*$|^(nil)@nil$/i', $parsed ) ){
         echo $parsed."\n";
 
         exit( 23 );
@@ -116,7 +108,7 @@ function checkSymb( $parsed ){
 }
 
 function checkLabel( $parsed ){
-    if ( !preg_match( '/(*UTF8)^(\w)*$/', $parsed ) ){
+    if ( !preg_match( '/(*UTF8)^(\S)*$/', $parsed ) ){
         echo $parsed."\n";
 
         exit( 23 );
@@ -135,15 +127,15 @@ function parseArg( $parsed ){
     
     global $comments;
     global $type;
-
+    
     if ( preg_match( '/(*UTF8)^((GF)|(TF)|(LF))@(\S)*$/i', $parsed ) ){
         $parsed = preg_replace( '/(GF)/i', "GF", $parsed );
         $parsed = preg_replace( '/(LF)/i', "LF", $parsed );
         $parsed = preg_replace( '/(TF)/i', "TF", $parsed );
         return array( "var", $parsed );
-    } elseif( preg_match( '/^(\w)+$/',$parsed && $type == 0 ) ){
+    } elseif( preg_match( '/^(\w)+$/',$parsed ) && $type == 0 ){
         return array( "label", $parsed );
-    } elseif( preg_match( '/^(\w)+$/',$parsed && $type == 1 ) ){
+    } elseif( preg_match( '/^(\w)+$/',$parsed ) && $type == 1 ){
         $type = 0;
         return array( "type", $parsed ); 
     } else {
@@ -431,7 +423,7 @@ function isKeyWord( $token ){
                         "RETURN", "PUSHS", "POPS", "ADD", "SUB", "MUL", "IDIV", "LT", "GT",
                         "EQ", "AND", "OR", "INT2CHAR", "STRI2INT", "READ", "WRITE", "STRLEN",
                         "GETCHAR", "SETCHAR", "NOT", "LABEL", "JUMPIFEQ", "JUMPIFNEQ", "CONCAT", "JUMP",
-                        "TYPE",  "EXIT", "DPRINT", "BREAK","" );
+                        "TYPE",  "EXIT", "DPRINT", "BREAK","", " " );
     if ( !( in_array( $token,$keyWords ) ) ){
         exit ( 22 );
     }
@@ -490,13 +482,16 @@ if ( $argc > 1 ){
 
 checkArgs( $help_argument, $arrayargs, $filePath );
 
-$FLine = fgets( STDIN );
+if ( !( $FLine = fgets( STDIN ) ) ) exit( 21 );
 
-while ( $FLine == "\n" || preg_match( '/^#/',$FLine ) ){
+$FLine = preg_replace( '/^(\s)*/', '', $FLine );
+
+while ( $FLine == "\n" || preg_match( '/^#/',$FLine ) || preg_match( '/^(\s)*$/', $FLine ) ){
     if ( preg_match( '/^#/',$FLine ) ){
         incrementComment();
     }
     $FLine = fgets( STDIN );
+    $FLine = preg_replace( '/^(\s)*/', '', $FLine );
 }
 
 $xml->openMemory();
@@ -506,7 +501,7 @@ $xml->startDocument('1.0','UTF-8');
 $xml->startElement('program');
 $xml->writeAttribute('language','IPPcode20');
 
-$header = "/^[ ]*.IPPcode20(\s)*(\#){0,1}/";
+$header = "/^[ ]*.IPPcode20$|^[ ]*.IPPcode20(((\s)+(\#))|(\#))/";
 
 if ( !( preg_match( $header,$FLine ) ) ){
     exit( 21 );
@@ -520,6 +515,7 @@ while ( ( $line = getLine( $FLine ) ) != NULL ){
         incrementComment();
         $line = preg_replace( '/#((\s)*(\S)*)*/',' ',$line );
     }
+    $line = preg_replace( '/^(\s)*/', '', $line );
     parseLine( $line, $xml );
 }
 $xml->endElement();
@@ -530,7 +526,5 @@ echo $xml->outputMemory();
 if ( $args ==  1 ){
     writeStatp( $arrayargs, $filePath );
 }
-
-// TODO u cesty nefunguje ^ nevim jestli ma
-
+// TODO prazdny soubor na vstupu
 ?>

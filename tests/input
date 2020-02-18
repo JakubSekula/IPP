@@ -1,0 +1,62 @@
+#ultimatnitest
+ # tehoto projektu voe
+    #ooor
+       #NOT
+#DEFHAHAR
+#.IPPcode20 lol
+ # necode
+
+       .IPPcode20#tohle je megavalid
+
+DEFVAR GF@coufffnter#vypise coufffnter a nic jineho
+MOVE GF@counfffter string@
+LABEL wh5ile
+JUMPIFEQ end GF@coufffnter string@aaa
+WRITE string@Proměnná\032GF@counter\032obsahuje\032TF@neco
+WRITE GF@counfffter
+WRITE string@\010
+CONCAT GF@coufffnter GF@counter string@a
+JUMP while
+LABEL end
+CREATEFRAME
+PUSHFRAME
+POPFRAME
+CALL counter
+RETURN
+PUSHS GF@coffunter
+
+#sme v pulce voe
+    #joke
+
+POPS TF@couffnter
+ADD GF@counffter string@ string@counter
+SUB GF@counffter string@ string@counter
+MUL GF@couffnter string@string string@counter
+IDIV GF@couffnter string@ string@counter
+LT GF@counffter string@ string@counter
+GT GF@couffnter string@ string@counter
+EQ GF@couffnter string@ string@counter
+AND GF@couffnter string@ string@counter
+OR GF@couffnter string@ string@counter
+NOT GF@neco string@
+#SS
+INT2CHAR GF@couffnter string@ahoj
+STRI2INT GF@counffter string@ string@counter
+WRITE string@Proměnná\032GF@counter\032obsahuje\032
+CONCAT GF@counffter string@ string@counter
+STRLEN GF@couffnter string@ahoj
+GETCHAR GF@coffunter string@ string@counter
+SETCHAR GF@couffnter string@ string@counter
+TYPE GF@counteffr string@testttt
+LABEL neco
+JUMP somewhereintotherainbow #lulz
+JUMPIFEQ navesti string@ string@counter
+JUMPIFNEQ navesti string@ string@counter
+EXIT string@asf
+DPRINT string@asfg
+BREAK
+MOVE GF@counter nil@nil
+BREAK
+MOVE TF@lol LF@hehe
+#braaaaakenwald
+#.IPPcode20

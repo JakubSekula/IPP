@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+#customers {
+  font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+#customers td, #customers th {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+#customers tr:nth-child(even){background-color: #f2f2f2;}
+
+#customers tr:hover {background-color: #ddd;}
+
+#customers th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #4CAF50;
+  color: white;
+}
+</style>
+</head>
+<body>
+ <h1>Vysledkova tabulka</h1>
+
+--help: 0
+--directory=path: .
+--recursive: 0
+--parse-script: path
+--int-script: interpret.py
+--parsed-only: 0
+--int-only: 0
+--jexamxml: /pub/courses/ipp/jexamxml/jexamxml.jar
+./README.md
+./parse.php
+./statp
+./test.html
+./test.php
+./test_args.php
+<table id='customers'><tr><th>Test</th><th>Vysledek</th><th>Navratovy kod</th></tr><tr><td>Test 1</td><td>Prosel</td><td>0</td></tr></body>
