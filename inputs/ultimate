@@ -60,7 +60,7 @@ JUMPIFNEQ navesti string@ string@counter
 EXIT string@asf
 DPRINT string@asfg
 BREAK
-MOVE nil@nil nil@nil
+MOVE GF@counter nil@nil
 BREAK
 MOVE TF@lol LF@hehe
 #braaaaakenwald
