@@ -66,9 +66,9 @@ if ( $help_argument == 1 ){
     exit( 0 );
 }
 
-if ( $parseonly == 1 && ( $intonly == 1 || $intscript != "" ) ){
+if ( $parseonly == 1 && ( $intonly == 1 || $intscript != "interpret.py" ) ){
     exit( 10 );
-} elseif( $intonly == 1 && ( $parseonly == 1 || $intscript != "" ) ){
+} elseif( $intonly == 1 && ( $parseonly == 1 || $intscript != "interpret.py" ) ){
     exit( 10 );
 }
 

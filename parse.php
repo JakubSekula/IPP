@@ -91,6 +91,18 @@ function checkEnd( $parsed ){
     }
 }
 
+function definedSymb( $parsed, $index ){
+    if( isset( $parsed[ $index ] ) ){
+        if ( preg_match( '/^(\s)*$/', $parsed[ $index ] ) ){
+            echo $parsed[$index-1]."\n";
+            exit( 23 );
+        }
+        checkSymb( $parsed[ $index ] );
+    } else {
+        exit( 23 );
+    }
+}
+
 function definedEnd( $parsed, $index ){
     incrementOrder();
     if ( isset( $parsed[ $index ] ) ){
@@ -102,7 +114,6 @@ function definedEnd( $parsed, $index ){
 function checkSymb( $parsed ){
     if ( !preg_match( '/(*UTF8)^([^#\s\\\\]|\\\\[0-9]{3})*$|^(int@((\-)|(\+)){0,1}(\p{N})*)$|(bool@((true)|(false)))$|^((GF)|(TF)|(LF))@(\S)*$|^(nil)@nil$/i', $parsed ) ){
         echo $parsed."\n";
-
         exit( 23 );
     }
 }
@@ -186,7 +197,7 @@ function checkSyntax( $parsed, $xml ){
     switch( $parsed[ 0 ] ){
         case "MOVE":
             checkVar( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
+            definedSymb( $parsed, 2 );
             definedEnd( $parsed, 3 );
             caseXml( 2, "MOVE", $order, $xml, $parsed );
             break;
@@ -230,7 +241,7 @@ function checkSyntax( $parsed, $xml ){
             caseXml( 0, "RETURN", $order, $xml, $parsed );
             break;
         case "PUSHS":
-            checkSymb( $parsed[ 1 ] );
+            definedSymb( $parsed, 1 );
             definedEnd( $parsed, 2 );
             caseXml( 1, "PUSHS", $order, $xml, $parsed );
             break;
@@ -241,121 +252,121 @@ function checkSyntax( $parsed, $xml ){
             break;
         case "ADD":
             checkVar( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
-            checkSymb( $parsed[ 3 ] );
+            definedSymb( $parsed, 2 );
+            definedSymb( $parsed, 3 );
             definedEnd( $parsed, 4 );
             caseXml( 3, "ADD", $order, $xml, $parsed );
             break;
         case "SUB":
             checkVar( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
-            checkSymb( $parsed[ 3 ] );
+            definedSymb( $parsed, 2 );
+            definedSymb( $parsed, 3 );
             definedEnd( $parsed, 4 );
             caseXml( 3, "SUB", $order, $xml, $parsed );
             break;
         case "MUL":
             checkVar( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
-            checkSymb( $parsed[ 3 ] );
+            definedSymb( $parsed, 3 );
+            definedSymb( $parsed, 3 );
             definedEnd( $parsed, 4 );
             caseXml( 3, "MUL", $order, $xml, $parsed );
             break;
         case "IDIV":
             checkVar( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
-            checkSymb( $parsed[ 3 ] );
+            definedSymb( $parsed, 2 );
+            definedSymb( $parsed, 3 );
             definedEnd( $parsed, 4 );
             caseXml( 3, "IDIV", $order, $xml, $parsed );
             break;
         case "LT":
             checkVar( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
-            checkSymb( $parsed[ 3 ] );
+            definedSymb( $parsed, 2 );
+            definedSymb( $parsed, 3 );
             definedEnd( $parsed, 4 );
             caseXml( 3, "LT", $order, $xml, $parsed );
             break;
         case "GT":
             checkVar( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
-            checkSymb( $parsed[ 3 ] );
+            definedSymb( $parsed, 2 );
+            definedSymb( $parsed, 3 );
             definedEnd( $parsed, 4 );
             caseXml( 3, "GT", $order, $xml, $parsed );
             break;
         case "EQ":
             checkVar( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
-            checkSymb( $parsed[ 3 ] );
+            definedSymb( $parsed, 2 );
+            definedSymb( $parsed, 3 );
             definedEnd( $parsed, 4 );
             caseXml( 3, "EQ", $order, $xml, $parsed );
             break;
         case "AND":
             checkVar( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
-            checkSymb( $parsed[ 3 ] );
+            definedSymb( $parsed, 2 );
+            definedSymb( $parsed, 3 );
             definedEnd( $parsed, 4 );
             caseXml( 3, "AND", $order, $xml, $parsed );
             break;
         case "OR":
             checkVar( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
-            checkSymb( $parsed[ 3 ] );
+            definedSymb( $parsed, 2 );
+            definedSymb( $parsed, 3 );
             definedEnd( $parsed, 4 );
             caseXml( 3, "OR", $order, $xml, $parsed );
             break;
         case "NOT":
             checkVar( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
+            definedSymb( $parsed, 2 );
             definedEnd( $parsed, 3 );
             caseXml( 2, "NOT", $order, $xml, $parsed );
             break;
         case "INT2CHAR":
             checkVar( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
+            definedSymb( $parsed, 2 );
             definedEnd( $parsed, 3 );
             caseXml( 2, "INT2CHAR", $order, $xml, $parsed );
             break;
         case "STRI2INT":
             checkVar( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
-            checkSymb( $parsed[ 3 ] );
+            definedSymb( $parsed, 2 );
+            definedSymb( $parsed, 3 );
             definedEnd( $parsed, 4 );
             caseXml( 3, "STRI2INT", $order, $xml, $parsed );
             break;
         case "WRITE":
-            checkSymb( $parsed[ 1 ] );
+            definedSymb( $parsed, 1 );
             definedEnd( $parsed, 2 );
             caseXml( 1, "WRITE", $order, $xml, $parsed );
             break;
         case "CONCAT":
             checkVar( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
-            checkSymb( $parsed[ 3 ] );
+            definedSymb( $parsed, 2 );
+            definedSymb( $parsed, 3 );
             definedEnd( $parsed, 4 );
             caseXml( 3, "CONCAT", $order, $xml, $parsed );
             break;
         case "STRLEN":
             checkVar( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
+            definedSymb( $parsed, 2 );
             definedEnd( $parsed, 3 );
             caseXml( 2, "STRLEN", $order, $xml, $parsed );
             break;
         case "GETCHAR":
             checkVar( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
-            checkSymb( $parsed[ 3 ] );
+            definedSymb( $parsed, 2 );
+            definedSymb( $parsed, 3 );
             definedEnd( $parsed, 4 );
             caseXml( 3, "GETCHAR", $order, $xml, $parsed );
             break;
         case "SETCHAR":
             checkVar( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
-            checkSymb( $parsed[ 3 ] );
+            definedSymb( $parsed, 2 );
+            definedSymb( $parsed, 3 );
             definedEnd( $parsed, 4 );
             caseXml( 3, "SETCHAR", $order, $xml, $parsed );
             break;
         case "TYPE":
             checkVar( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
+            definedSymb( $parsed, 2 );
             definedEnd( $parsed, 3 );
             caseXml( 2, "TYPE", $order, $xml, $parsed );
             break;
@@ -368,26 +379,26 @@ function checkSyntax( $parsed, $xml ){
         case "JUMPIFEQ":
             $jumps++;
             checkLabel( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
-            checkSymb( $parsed[ 3 ] );
+            definedSymb( $parsed, 2 );
+            definedSymb( $parsed, 3 );
             definedEnd( $parsed, 4 );
             caseXml( 3, "JUMPIFEQ", $order, $xml, $parsed );
             break;
         case "JUMPIFNEQ":
             $jumps++;
             checkLabel( $parsed[ 1 ] );
-            checkSymb( $parsed[ 2 ] );
-            checkSymb( $parsed[ 3 ] );
+            definedSymb( $parsed, 2 );
+            definedSymb( $parsed, 3 );
             definedEnd( $parsed, 4 );
             caseXml( 3, "JUMPIFNEQ", $order, $xml, $parsed );
             break;
         case "EXIT":
-            checkSymb( $parsed[ 1 ] );
+            definedSymb( $parsed, 1 );
             definedEnd( $parsed, 2 );
             caseXml( 1, "EXIT", $order, $xml, $parsed );    
             break;
         case "DPRINT":
-            checkSymb( $parsed[ 1 ] );
+            definedSymb( $parsed, 1 );
             definedEnd( $parsed, 2 );
             caseXml( 1, "DPRINT", $order, $xml, $parsed );
             break;
@@ -501,7 +512,7 @@ $xml->startDocument('1.0','UTF-8');
 $xml->startElement('program');
 $xml->writeAttribute('language','IPPcode20');
 
-$header = "/^[ ]*.IPPcode20$|^[ ]*.IPPcode20(((\s)+(\#))|(\#))/";
+$header = "/^[ ]*.IPPcode20$|^[ ]*.IPPcode20(((\s)+(\#))|(\#))/i";
 
 if ( !( preg_match( $header,$FLine ) ) ){
     exit( 21 );
@@ -527,4 +538,5 @@ if ( $args ==  1 ){
     writeStatp( $arrayargs, $filePath );
 }
 // TODO prazdny soubor na vstupu
+// TODO MOVE GF@neco projde
 ?>

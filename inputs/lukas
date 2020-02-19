@@ -4,8 +4,8 @@
        #NOT
 #DEFHAHAR
 #.IPPcode20 lol
- # necode
-
+ # necode 
+    
        .IPPcode20
 
 DEFVAR GF@coufffnter#vypise coufffnter a nic jineho
@@ -19,9 +19,14 @@ CONCAT GF@coufffnter GF@counter string@a
 JUMP while
 LABEL end
 CREATEFRAME
+WRITE string@\010
+WRITE string@\010
+WRITE string@\010
 PUSHFRAME
 POPFRAME
 CALL counter
+CALL counter#now
+CALL counter #aksakska
 RETURN
 PUSHS GF@coffunter
 
