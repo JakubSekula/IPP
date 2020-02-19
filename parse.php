@@ -185,7 +185,7 @@ function caseXml( $iter, $opcode, $order, $xml, $parsed ){
 function checkSyntax( $parsed, $xml ){
     
     global $order;
-    global $loc;
+    global $loc; 
     global $labels;
     global $jumps;
     global $type;
