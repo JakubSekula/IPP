@@ -111,6 +111,18 @@ function definedEnd( $parsed, $index ){
 
 }
 
+function definedLabel( $parsed, $index ){
+    if( isset( $parsed[ $index ] ) ){
+        if ( preg_match( '/^(\s)*$/', $parsed[ $index ] ) ){
+            echo $parsed[$index-1]."\n";
+            exit( 23 );
+        }
+        checkLabel( $parsed[ $index ] );
+    } else {
+        exit( 23 );
+    }
+}
+
 function checkSymb( $parsed ){
     if ( !preg_match( '/(*UTF8)^([^#\s\\\\]|\\\\[0-9]{3})*$|^(int@((\-)|(\+)){0,1}(\p{N})*)$|(bool@((true)|(false)))$|^((GF)|(TF)|(LF))@(\S)*$|^(nil)@nil$/i', $parsed ) ){
         echo $parsed."\n";
@@ -208,7 +220,7 @@ function checkSyntax( $parsed, $xml ){
             break;
         case "LABEL":
             $labels++;
-            checkLabel( $parsed[ 1 ] );
+            definedLabel( $parsed, 1 );
             definedEnd( $parsed, 2 );
             caseXml( 1, "LABEL", $order, $xml, $parsed );
             break;
@@ -225,7 +237,7 @@ function checkSyntax( $parsed, $xml ){
             caseXml( 0, "POPFRAME", $order, $xml, $parsed );
             break;
         case "CALL":
-            checkLabel( $parsed[ 1 ] );
+            definedLabel( $parsed, 1 );
             definedEnd( $parsed, 2 );
             caseXml( 1, "CALL", $order, $xml, $parsed );
             break;
@@ -372,13 +384,13 @@ function checkSyntax( $parsed, $xml ){
             break;
         case "JUMP":
             $jumps++;
-            checkLabel( $parsed[ 1 ] );
+            definedLabel( $parsed, 1 );
             definedEnd( $parsed, 2 );
             caseXml( 1, "JUMP", $order, $xml, $parsed );
             break;
         case "JUMPIFEQ":
             $jumps++;
-            checkLabel( $parsed[ 1 ] );
+            definedLabel( $parsed, 1 );
             definedSymb( $parsed, 2 );
             definedSymb( $parsed, 3 );
             definedEnd( $parsed, 4 );
@@ -386,7 +398,7 @@ function checkSyntax( $parsed, $xml ){
             break;
         case "JUMPIFNEQ":
             $jumps++;
-            checkLabel( $parsed[ 1 ] );
+            definedLabel( $parsed, 1 );
             definedSymb( $parsed, 2 );
             definedSymb( $parsed, 3 );
             definedEnd( $parsed, 4 );

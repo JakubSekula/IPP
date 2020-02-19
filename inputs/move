@@ -1,3 +1,10 @@
 .Ippcode20
-POPS GF@counter
-DEFVAR GF@counter GF@counter
+MOVE GF@counter GF@counter
+CREATEFRAME
+PUSHFRAME
+CALL enco
+DEFVAR GF@neco
+PUSHFRAME
+READ GF@nil int
+CREATEFRAME
+BREAK 
