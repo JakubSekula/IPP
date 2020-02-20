@@ -2,45 +2,87 @@
 <html>
 <head>
 <style>
-#customers {
-  font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+body {
+  padding: 0;
+  margin: 0;
+    font-family: Arial;
+  background-color: white;
+}
+.returns {
   border-collapse: collapse;
-  width: 100%;
 }
 
-#customers td, #customers th {
+.returns td, .returns th {
   border: 1px solid #ddd;
   padding: 8px;
+  text-align: center;
 }
 
-#customers tr:nth-child(even){background-color: #f2f2f2;}
+#test{
+    width: 10%;
+}
+#navrat{
+    text-align: center;
+}
 
-#customers tr:hover {background-color: #ddd;}
+.returns tr:nth-child(even){background-color: #f2f2f2;}
 
-#customers th {
+.returns th {
   padding-top: 12px;
   padding-bottom: 12px;
-  text-align: left;
-  background-color: #4CAF50;
+  background-color: #1B526B; 
   color: white;
 }
+
+.tabulka{
+    width: 50%;
+    margin: 0 auto;
+    margin-top: 20px;
+}
+
+h1{
+    text-align: center;
+    color: #1B526B;
+}
+
+#prosel{
+    background-color: #20c79d;
+}
+
+#neprosel{
+    background-color: #ff0000;
+}
+
+.proc{
+    border-bottom: 1.5px solid #aaa;
+    padding-bottom: 1px;
+}
+
 </style>
 </head>
 <body>
- <h1>Vysledkova tabulka</h1>
-
---help: 0
---directory=path: .
---recursive: 0
---parse-script: path
---int-script: interpret.py
---parsed-only: 0
---int-only: 0
---jexamxml: /pub/courses/ipp/jexamxml/jexamxml.jar
-./README.md
-./parse.php
-./statp
-./test.html
-./test.php
-./test_args.php
-<table id='customers'><tr><th>Test</th><th>Vysledek</th><th>Navratovy kod</th></tr><tr><td>Test 1</td><td>Prosel</td><td>0</td></tr></body>
+<div class="proc">
+ <h1>Vysledkova tabulka IPP projektu</h1>
+</div>    
+    <div class="tabulka">
+        <table class='returns'>
+          <tr>
+            <th>Test</th>
+            <th id='test'>Navratovy kod</th>
+            <th id='test'>Ocekavany kod</th>
+            <th>Vysledek</th>
+          </tr>
+          <tr>
+            <td>Test 1</td>
+            <td id='navrat'>0</td>
+            <td id='navrat'>0</td>
+            <td id='prosel'>Prosel</td>
+          </tr>
+            <tr>
+                <td>Test 2</td>
+                <td id='navrat'>0</td>
+                <td id='navrat'>21</td>
+                <td id='neprosel'>Prosel</td>
+            </tr>
+    </div>
+</body>

@@ -12,12 +12,12 @@ $recursive = 0;
 
 if ( $argc > 1 ){
     foreach( $argv as $current ){
-        if ( $current == "test.php" ){
+        if ( preg_match( '/test\.php/', $current ) ){
             continue;
         }
         if ( preg_match( '/^(\-){1,2}help$/', $current ) ){
             $help_argument = 1;
-        } elseif ( preg_match( '/^(\-){1,2}directory=(((\.)|(\.\.)|(\.\.\/)+|(\/))|([a-zA-Z]+))$/', $current ) ) {
+        } elseif ( preg_match( '/^(\-){1,2}directory=(((\.\.\/)|(\w))+(\/)*)+$/', $current ) ) {
             $pos = strpos( $current, "=" );
             $path = substr( $current, $pos + 1 );
             if ( !is_dir( "$path" ) ){
@@ -28,13 +28,13 @@ if ( $argc > 1 ){
             }
         } elseif( preg_match( '/^(\-){1,2}recursive$/', $current ) ){
             $recursive = 1;
-        } elseif( preg_match( '/^(\-){1,2}parse-script=(((\.)|(\.\.)|(\.\.\/)+|(\/))|([a-zA-Z]+))$/', $current ) ){
+        } elseif( preg_match( '/^(\-){1,2}parse-script=(((\.\.\/)|(\w))+(\/)*)+$/', $current ) ){
             $pos = strpos( $current, "=" );
             $path = substr( $current, $pos + 1 );
             if ( $path != "" ){
                 $parsescript = $path;
             }
-        } elseif( preg_match( '/^(\-){1,2}int-script=(((\.)|(\.\.)|(\.\.\/)+|(\/))|([a-zA-Z]+))$/', $current ) ){
+        } elseif( preg_match( '/^(\-){1,2}int-script=(((\.\.\/)|(\w))+(\/)*)+$/', $current ) ){
             $pos = strpos( $current, "=" );
             $path = substr( $current, $pos + 1 );
             if ( $path != "" ){
@@ -44,13 +44,14 @@ if ( $argc > 1 ){
             $parseonly = 1;
         } elseif( preg_match( '/^(\-){1,2}int-only$/', $current ) ){
             $intonly = 1;
-        } elseif( preg_match( '/^(\-){1,2}jexamxml=(((\.)|(\.\.)|(\.\.\/)+|(\/))|([a-zA-Z]+))$/', $current ) ){
+        } elseif( preg_match( '/^(\-){1,2}jexamxml=(((\.\.\/)|(\w))+(\/)*)+$/', $current ) ){
             $pos = strpos( $current, "=" );
             $path = substr( $current, $pos + 1 );
             if ( $path != "" ){
                 $jexamxml = $path;
             }
         } else {
+            echo $current;
             exit( 10 );
         }
     }

@@ -2,14 +2,22 @@
 
 include 'test_args.php';
 
+function executeCommand( $command, $outFile ){
+    exec( $command, $out, $rv );
+    $file = preg_replace( '/\.out/', '.rc', $outFile );
+    $rcFile = fopen( "$file", "w" );
+    fwrite( $rcFile, $rv );
+    fclose( $rcFile );
+}
+
 function testThis( $testPath, $file ){
     global $parsescript;
-    $file = preg_replace( '/\.src$/', '', $file );
-    echo $testPath."\n";
-    $file = $file."_parser.out";
-    $command = "php "."$parsescript <"."$testPath >"."$file"; 
-    exec( $command, $out, $rv );
-    echo $rv."\n";
+    if ( preg_match( '/\.src/', $file ) ){
+        $file = preg_replace( '/\.src$/', '', $file );
+        $file = $file."_parser.out";
+        $command = "php7.4 "."$parsescript <"."$testPath >"."$file";
+        executeCommand( $command, $file );
+    }
 }
 
 function goOver( $directory, $recursive ){
@@ -29,5 +37,7 @@ function goOver( $directory, $recursive ){
 }
 
 goOver( $directory, $recursive );
+
+$test = array( 'test' => 1, 'dalsi' => 2 );
 
 ?>
