@@ -1,5 +1,7 @@
 <?php
 
+
+// globalni promenna pro xml writer
 global $xml;
 
 $type;
@@ -10,7 +12,21 @@ $comments = 0;
 $jumps = 0;
 $order = 0;
 
+// promenna pro rozsireni a kontrolu zda li neexistuje vic navesti
+
+$labeldiff = array();
+
 $xml = new XMLWriter();
+
+function checkDuplicitLabels( $parsed, $index ){
+    global $labeldiff;
+    global $labels;
+
+    if ( !in_array( $parsed[ $index ], $labeldiff ) ){
+        array_push( $labeldiff, $parsed[ $index ] );
+        $labels++;
+    }
+}
 
 function incrementOrder(){
     global $order;
@@ -44,10 +60,13 @@ function writeStatp( $arrayargs, $path ){
     fclose( $file );
 }
 
+// kontrola spravnosti argumentu
+
 function checkArgs( $help_argument, $arrayargs, $filePath ){
     global $statp;
     $statp = 0;
 
+    // jestlize je --help nesmi byt zadny jiny
     if ( ( count( $help_argument ) == 1 ) && ( count( $arrayargs ) != 0 ) ){
         exit( 10 );
     } elseif( ( count( $help_argument ) == 1 ) && ( count( $arrayargs ) == 0 ) ){
@@ -56,6 +75,7 @@ function checkArgs( $help_argument, $arrayargs, $filePath ){
     } elseif( ( count( $help_argument ) == 0 ) && ( count( $arrayargs ) != 0 ) ){
         $stats = false;
         $different = false;
+        // stats musi byt zadan i s cestou
         foreach( $arrayargs as $arg ){
             if ( preg_match( '/^(\-){1,2}stats=/', $arg ) ){
                 $stats = true;
@@ -67,16 +87,21 @@ function checkArgs( $help_argument, $arrayargs, $filePath ){
             exit ( 10 );
         }
     } elseif( ( count( $help_argument ) == 0 ) && ( count( $arrayargs ) == 0 ) ){ 
-    
+        
     } else {
         exit( 10 );
     }
     
 }
 
+/*
+*
+* Nasleduji kontroly formatu
+*
+*/
+
 function checkVar( $parsed ){
     if ( !preg_match( '/(*UTF8)^((TF)|(GF)|(LF))@((\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?)|(\p{L})){1}((\p{N})|(\p{L}))*$/i', $parsed ) ){
-        echo $parsed."\n";
         exit( 23 );
     }
 }
@@ -86,7 +111,6 @@ function checkEnd( $parsed ){
         $parsed = "";
     } 
     if ( $parsed != "" ){
-        echo $parsed."\n";
         exit ( 23 );
     }
 }
@@ -94,7 +118,6 @@ function checkEnd( $parsed ){
 function definedSymb( $parsed, $index ){
     if( isset( $parsed[ $index ] ) ){
         if ( preg_match( '/^(\s)*$/', $parsed[ $index ] ) ){
-            echo $parsed[$index-1]."\n";
             exit( 23 );
         }
         checkSymb( $parsed[ $index ] );
@@ -114,7 +137,6 @@ function definedEnd( $parsed, $index ){
 function definedLabel( $parsed, $index ){
     if( isset( $parsed[ $index ] ) ){
         if ( preg_match( '/^(\s)*$/', $parsed[ $index ] ) ){
-            echo $parsed[$index-1]."\n";
             exit( 23 );
         }
         checkLabel( $parsed[ $index ] );
@@ -150,18 +172,21 @@ function parseArg( $parsed ){
     
     global $comments;
     global $type;
-    
+    // parametry GF musi byt ve vyslednem xml vzdy velkym    
     if ( preg_match( '/(*UTF8)^((GF)|(TF)|(LF))@(\S)*$/i', $parsed ) ){
         $parsed = preg_replace( '/(GF)/i', "GF", $parsed );
         $parsed = preg_replace( '/(LF)/i', "LF", $parsed );
         $parsed = preg_replace( '/(TF)/i', "TF", $parsed );
         return array( "var", $parsed );
     } elseif( preg_match( '/^(\w)+$/',$parsed ) && $type == 0 ){
+        // pro pripad ze se jedna o label
         return array( "label", $parsed );
     } elseif( preg_match( '/^(\w)+$/',$parsed ) && $type == 1 ){
+        // pro type
         $type = 0;
         return array( "type", $parsed ); 
     } else {
+        // jestlize se jedna o int, string, bool
         $pos = strpos( $parsed, "@" );
         $firstpiece = substr( $parsed, 0, $pos );
         $secondpiece = substr( $parsed, $pos + 1 );
@@ -173,6 +198,12 @@ function parseArg( $parsed ){
         return array( $firstpiece, $secondpiece );
     }
 }
+
+/*
+*
+* Vystup v xml formatu
+*
+*/
 
 function caseXml( $iter, $opcode, $order, $xml, $parsed ){
 
@@ -194,6 +225,13 @@ function caseXml( $iter, $opcode, $order, $xml, $parsed ){
     $xml->endElement();
 }
 
+
+/*
+*
+* Case pro jednotlive instrukce
+*
+*/
+
 function checkSyntax( $parsed, $xml ){
     
     global $order;
@@ -204,6 +242,7 @@ function checkSyntax( $parsed, $xml ){
 
     $type = 0;
     
+    // instrukce muze byt zapsana na vstupu i malym, ale porovnavam s velkym
     $parsed[ 0 ] = strtoupper( $parsed[ 0 ] );
 
     switch( $parsed[ 0 ] ){
@@ -219,8 +258,8 @@ function checkSyntax( $parsed, $xml ){
             caseXml( 1, "DEFVAR", $order, $xml, $parsed );
             break;
         case "LABEL":
-            $labels++;
             definedLabel( $parsed, 1 );
+            checkDuplicitLabels( $parsed, 1 );
             definedEnd( $parsed, 2 );
             caseXml( 1, "LABEL", $order, $xml, $parsed );
             break;
@@ -422,6 +461,7 @@ function checkSyntax( $parsed, $xml ){
     }
 }
 
+// navraci 1 a kontroluje radek ze vstupu
 function returnLine( $line ){
     if ( ( $line ) || ( $line ) != 'EOF' ){
         return $line;
@@ -430,14 +470,17 @@ function returnLine( $line ){
     }
 }
 
+// ziska radek vstupu
 function getLine( $file ){
     $line = fgets( STDIN );
+    // dokud neni radek jen odradkovani
     while ( $line == "\n" ){
         $line = fgets( STDIN );
     }
     return returnLine( $line );
 }
 
+// kontrola pro chybu 22, jestli je keyword spravne
 function isKeyWord( $token ){
 
     $token = strtoupper( $token );
@@ -453,9 +496,12 @@ function isKeyWord( $token ){
     return;
 }
 
+// rozcleneni radku na tokeny
 function parseLine( $line, $xml ){
 
     global $comments;
+
+    // nahrazeni 2+ mezer za 1
 
     $line = preg_replace( '/\s+/', " ",$line );
     $parsed = explode( " ", $line );
@@ -472,18 +518,24 @@ function parseLine( $line, $xml ){
     }
 }
 
+// pomocne promenne pro argumenty
+
 $help_argument = array();
 $arrayargs = array();
 $filePath = "";
 
+// kopntrola vstupnich argumentu
+
 if ( $argc > 1 ){
     foreach( $argv as $current ){
+        // preskakuju spousteny skript
         if ( $current == "parse.php" ){
             continue;
         }
         if ( preg_match( '/^(\-){1,2}help$/', $current ) ){
             array_push( $help_argument, 'help' );
         } elseif ( preg_match( '/^(\-){1,2}stats=((..\/)*(\w+)(\/){0,1})+$/', $current ) ) {
+            // rozdeleni podle =
             $pos = strpos( $current, "=" );
             $path = substr( $current, $pos + 1 );
             array_push( $arrayargs, "$current" );
@@ -505,18 +557,23 @@ if ( $argc > 1 ){
 
 checkArgs( $help_argument, $arrayargs, $filePath );
 
+//  jestlize je vstup prazdny
 if ( !( $FLine = fgets( STDIN ) ) ) exit( 21 );
-
+// nahradim bile znaky na zacatku radku za ''
 $FLine = preg_replace( '/^(\s)*/', '', $FLine );
 
+// dokud je na radku \n nebo komentar nebo je radek prazdny jen s bilymi znaky
 while ( $FLine == "\n" || preg_match( '/^#/',$FLine ) || preg_match( '/^(\s)*$/', $FLine ) ){
     if ( preg_match( '/^#/',$FLine ) ){
+        // inkrementace pro rozsireni
         incrementComment();
     }
     $FLine = fgets( STDIN );
+    // nahradim bile znaky
     $FLine = preg_replace( '/^(\s)*/', '', $FLine );
 }
 
+// xml Writer prikazy
 $xml->openMemory();
 $xml->setIndent(true);
 $xml->startDocument('1.0','UTF-8');
@@ -524,31 +581,37 @@ $xml->startDocument('1.0','UTF-8');
 $xml->startElement('program');
 $xml->writeAttribute('language','IPPcode20');
 
+// kontrola kvuli chybe 21
 $header = "/^[ ]*.IPPcode20$|^[ ]*.IPPcode20(((\s)+(\#))|(\#))/i";
 
 if ( !( preg_match( $header,$FLine ) ) ){
     exit( 21 );
 } 
+// komentar je soucasti hlavicky
 if ( preg_match( '/#((\s)*(\S)*)*/', $FLine ) ){
     incrementComment();
 }
 
+// dokud je co cist tak ctu
 while ( ( $line = getLine( $FLine ) ) != NULL ){
+    // kontrola kvuli komentarum
     if ( preg_match( '/#((\s)*(\S)*)*/', $line ) ){
         incrementComment();
+        // nahradim komentar za mezeru
         $line = preg_replace( '/#((\s)*(\S)*)*/',' ',$line );
     }
+    //  nahrazeni bilych znaku na zacatku radku
     $line = preg_replace( '/^(\s)*/', '', $line );
     parseLine( $line, $xml );
 }
+// ukonceni xml
 $xml->endElement();
 $xml->endDocument();
 
 echo $xml->outputMemory();
 
+// jestlize je zadane rozsireni
 if ( $args ==  1 ){
     writeStatp( $arrayargs, $filePath );
 }
-// TODO prazdny soubor na vstupu
-// TODO MOVE GF@neco projde
 ?>
