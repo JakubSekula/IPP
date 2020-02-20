@@ -1,0 +1,9 @@
+.Ippcode20
+CALL navesti
+JUMP navesti
+JUMPIFEQ navesti GF@counter GF@counter
+JUMPIFEQ navesti GF@counter GF@counter 
+RETURN
+
+Label neo
+Label neo

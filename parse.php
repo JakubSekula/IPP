@@ -276,6 +276,7 @@ function checkSyntax( $parsed, $xml ){
             caseXml( 0, "POPFRAME", $order, $xml, $parsed );
             break;
         case "CALL":
+            $jumps++;
             definedLabel( $parsed, 1 );
             definedEnd( $parsed, 2 );
             caseXml( 1, "CALL", $order, $xml, $parsed );
@@ -288,6 +289,7 @@ function checkSyntax( $parsed, $xml ){
             caseXml( 2, "READ", $order, $xml, $parsed );
             break;
         case "RETURN":
+            $jumps++;
             definedEnd( $parsed, 1 );
             caseXml( 0, "RETURN", $order, $xml, $parsed );
             break;
@@ -614,4 +616,6 @@ echo $xml->outputMemory();
 if ( $args ==  1 ){
     writeStatp( $arrayargs, $filePath );
 }
+
+//TODO zkusit READ
 ?>
