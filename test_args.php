@@ -1,6 +1,7 @@
 <?php
 
 $directory = ".";
+global $parsescript;
 $parsescript = "parse.php";
 $intscript = "interpret.py";
 $jexamxml = "/pub/courses/ipp/jexamxml/jexamxml.jar";
@@ -80,14 +81,14 @@ if ( !file_exists( $parsescript ) ){
     exit( 11 );
 }
 
-echo "--help: $help_argument\n";
+/* echo "--help: $help_argument\n";
 echo "--directory=path: $directory\n";
 echo "--recursive: $recursive\n";
 echo "--parse-script: $parsescript\n";
 echo "--int-script: $intscript\n";
 echo "--parsed-only: $parseonly\n";
 echo "--int-only: $intonly\n";
-echo "--jexamxml: $jexamxml\n";
+echo "--jexamxml: $jexamxml\n"; */
 
 
 
