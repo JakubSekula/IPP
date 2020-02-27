@@ -32,7 +32,7 @@ if ( $argc > 1 ){
             $pos = strpos( $current, "=" );
             $path = substr( $current, $pos + 1 );
             if ( $path != "" ){
-                $parsescript = $path;
+                $parsescript = $path."parse.php";
             }
         } elseif( preg_match( '/^(\-){1,2}int-script=(((\.\.\/)|(\w))+(\/)*)+$/', $current ) ){
             $pos = strpos( $current, "=" );

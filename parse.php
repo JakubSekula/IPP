@@ -101,13 +101,13 @@ function checkArgs( $help_argument, $arrayargs, $filePath ){
 */
 
 function checkVar( $parsed ){
-    if ( !preg_match( '/(*UTF8)^((TF)|(GF)|(LF))@((\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?)|(\p{L})){1}((\p{N})|(\p{L}))*$/i', $parsed ) ){
+    if ( !preg_match( '/(*UTF8)^((TF)|(GF)|(LF))@((\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?)|(\p{L})){1}((\p{N})|(\p{L}))*$/', $parsed ) ){
         exit( 23 );
     }
 }
 
 function checkEnd( $parsed ){
-     if ( preg_match( '/(*UTF8)^#((\S)*|(\s)*)*$/', $parsed ) ){ //TODO je korektni uprava ?
+     if ( preg_match( '/(*UTF8)^#((\S)*|(\s)*)*$/', $parsed ) ){
         $parsed = "";
     } 
     if ( $parsed != "" ){
@@ -146,7 +146,11 @@ function definedLabel( $parsed, $index ){
 }
 
 function checkSymb( $parsed ){
-    if ( !preg_match( '/(*UTF8)^([^#\s\\\\]|\\\\[0-9]{3})*$|^(int@((\-)|(\+)){0,1}(\p{N})*)$|(bool@((true)|(false)))$|^((GF)|(TF)|(LF))@(\S)*$|^(nil)@nil$/i', $parsed ) ){
+    // prvni se kontroluje spravnost formalni v elseif jestli zde nejsou nepovolone znaky
+    if ( !preg_match( '/(*UTF8)^(int@((\-)|(\+)){0,1}(\p{N})*)$|(bool@((true)|(false)))$|^((GF)|(TF)|(LF))@(\S)*$|^(nil)@nil$|^string@(\S)*$/', $parsed ) ){
+        echo $parsed."\n";
+        exit( 23 );
+    } elseif( !preg_match( '/(*UTF8)^([^#\s\\\\]|\\\\[0-9]{3})*$/i', $parsed ) ){
         echo $parsed."\n";
         exit( 23 );
     }
@@ -161,7 +165,7 @@ function checkLabel( $parsed ){
 }
 
 function checkType( $parsed ){
-    if ( !preg_match( '/^((int)|(bool)|(string))$/i', $parsed ) ){
+    if ( !preg_match( '/^((int)|(bool)|(string))$/', $parsed ) ){
         echo $parsed."\n";
 
         exit( 23 );
@@ -187,9 +191,17 @@ function parseArg( $parsed ){
         return array( "type", $parsed ); 
     } else {
         // jestlize se jedna o int, string, bool
-        $pos = strpos( $parsed, "@" );
+        $pos = strpos( $parsed, "@" ); 
         $firstpiece = substr( $parsed, 0, $pos );
         $secondpiece = substr( $parsed, $pos + 1 );
+
+        if( preg_match( '/bool/i', $firstpiece  ) ){
+            $firstpiece = strtolower( $firstpiece );
+            if ( !preg_match( '/^(true)|(false)$/', $secondpiece ) ){
+                exit( 23 );
+            }
+            $secondpiece = strtolower( $secondpiece );
+        }
 
         if ( preg_match( '/^#/', $secondpiece ) ){
             $comments++;
@@ -560,7 +572,10 @@ if ( $argc > 1 ){
 checkArgs( $help_argument, $arrayargs, $filePath );
 
 //  jestlize je vstup prazdny
-if ( !( $FLine = fgets( STDIN ) ) ) exit( 21 );
+if ( !( $FLine = fgets( STDIN ) ) ){
+echo "Dick\n";
+exit( 21 );
+}
 // nahradim bile znaky na zacatku radku za ''
 $FLine = preg_replace( '/^(\s)*/', '', $FLine );
 
@@ -584,9 +599,10 @@ $xml->startElement('program');
 $xml->writeAttribute('language','IPPcode20');
 
 // kontrola kvuli chybe 21
-$header = "/^[ ]*.IPPcode20$|^[ ]*.IPPcode20(((\s)+(\#))|(\#))/i";
+$header = "/[ ]*.IPPcode20(\s)*(#)*(\S)*/i";
 
 if ( !( preg_match( $header,$FLine ) ) ){
+    echo "$FLine\n";
     exit( 21 );
 } 
 // komentar je soucasti hlavicky
