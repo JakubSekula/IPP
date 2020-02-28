@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {
+  padding: 0;
+  margin: 0;
+    font-family: Arial;
+  background-color: white;
+}
+.returns {
+  border-collapse: collapse;
+}
+
+.returns td, .returns th {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+#test{
+    width: 10%;
+}
+#navrat{
+    text-align: center;
+}
+
+.returns tr:nth-child(even){background-color: #f2f2f2;}
+
+.returns th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  background-color: #1B526B; 
+  color: white;
+}
+
+.tabulka{
+    width: 50%;
+    margin: 0 auto;
+    margin-top: 20px;
+}
+
+h1{
+    text-align: center;
+    color: #1B526B;
+}
+
+#prosel{
+    background-color: #20c79d;
+}
+
+#neprosel{
+    background-color: #ff0000;
+}
+
+.proc{
+    border-bottom: 1.5px solid #aaa;
+    padding-bottom: 1px;
+}
+
+.celkova{
+    width: 18%;
+    position:absolute;
+    bottom:2%;
+    margin-left: 1%;
+}
+
+</style>
+</head>
+<body>
+<div class="proc">
+ <h1>Vysledkova tabulka IPP projektu</h1>
+</div>    
+    <div class="tabulka">
+        <table class='returns'>
+          <tr>
+            <th>Test</th>
+            <th id='test'>Navratovy kod</th>
+            <th id='test'>Ocekavany kod</th>
+            <th>Vysledek</th>
+          </tr>
+<tr><td>tests/read_test.src</td><td id='navrat'>0</td><td id='navrat'>0</td><td id='prosel'>Prosel</td></tr><tr><td>tests/simple_tag.src</td><td id='navrat'>0</td><td id='navrat'>0</td><td id='prosel'>Prosel</td></tr><tr><td>tests/testsc/read_test.src</td><td id='navrat'>0</td><td id='navrat'>0</td><td id='prosel'>Prosel</td></tr><tr><td>tests/testsc/simple_tag.src</td><td id='navrat'>0</td><td id='navrat'>0</td><td id='prosel'>Prosel</td></tr></table></div><div class='vysledkovka'><table class='returns celkova'><tr><th>Proslo</th><th>Neproslo</th><th>Uspesnost v %</th></tr><tr><td><b>4</b></td><td><b>0</b></td><td><b>100 %</b></td></tr></table></div>        </table>
+        </div>
+    </body>
+</html>
