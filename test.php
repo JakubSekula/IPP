@@ -144,6 +144,7 @@ function rcTosrc( $File ){
     return ( $File = preg_replace( '/\.rc/', '.src', $File ) );
 }
 
+
 function writeSucces( $parseOut, $origFile, $expectedRv, $parseRv ){
     global $successful;
     $successful++;
@@ -161,7 +162,9 @@ function writeError( $parseFile, $cmpFile, $expectedRv, $parseRv ){
     global $failed;
     $failed++;
     $cmpFile = rcToSrc( $cmpFile );
+
     $cmpFile = getcwd()."/".$cmpFile;
+
     echo "<tr>";
     echo    "<td>$cmpFile</td>";
     echo    "<td id='navrat'>$parseRv</td>";
@@ -184,7 +187,7 @@ function checkJexamxml( $parseFile, $cmpFile, $expectedRv, $parseRv ){
     echo    "<td>$cmpFile</td>";
     echo    "<td id='navrat'>$parseRv</td>";
     echo    "<td id='navrat'>$expectedRv</td>";
-    if ( $rv == $parseRv ){
+    if ( $rv == 0 ){
         $successful++;
         echo    "<td id='prosel'>Prosel</td>";
     } else {
@@ -203,6 +206,7 @@ function getRv( $origFile, $parseRv, $parseOut ){
         $expectedRv = 0;
     }
     fclose( $rvFile );
+
     if ( ( $expectedRv == 0 ) && ( $parseRv == 0 ) ){
         $origFile = preg_replace( '/\.rc/', '.out', $origFile );
         checkJexamxml( $parseOut, $origFile, $expectedRv, $parseRv );
@@ -231,6 +235,9 @@ function testThis( $testPath, $file ){
         $file = preg_replace( '/\.src$/', '', $file );
         $file = $testOutDir."/".$file."_parser.out";
         $command = "php7.4 "."$parsescript <"."$testPath >"."$file";
+
+        //echo "\n\n\n||| $command |||\n\n\n";
+
         $parseRv = executeCommand( $command, $file );
         getRv( $origFile, $parseRv, $file );
     }
@@ -254,6 +261,7 @@ function goOver( $directory, $recursive ){
 }
 goOver( $directory, $recursive );
 writeStats();
+
 
 $command = "rm -rf TmpTestFolder";
 exec( $command, $out, $rv );
