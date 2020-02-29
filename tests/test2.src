@@ -1,7 +1,0 @@
-.IPPCODE20    #naeo
-MOVE GF@counter bool@true
-CREATEFRAME
-POPFRAME
-CALL TruE
-REtUrn
-LT LF@counter bool@true nil@nil

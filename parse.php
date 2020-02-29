@@ -101,7 +101,7 @@ function checkArgs( $help_argument, $arrayargs, $filePath ){
 */
 
 function checkVar( $parsed ){
-    if ( !preg_match( '/(*UTF8)^((TF)|(GF)|(LF))@((\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?)|(\p{L})){1}((\p{N})|(\p{L}))*$/', $parsed ) ){
+    if ( !preg_match( '/(*UTF8)^((TF)|(GF)|(LF))@((\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?)|(\p{L}))((\p{N})|(\p{L})|(\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?))*$/', $parsed ) ){
         exit( 23 );
     }
 }
@@ -158,7 +158,7 @@ function definedLabel( $parsed, $index ){
 
 function checkSymb( $parsed ){
     // prvni se kontroluje spravnost formalni v elseif jestli zde nejsou nepovolone znaky
-    if ( !preg_match( '/(*UTF8)^(int@((\-)|(\+)){0,1}(\p{N})*)$|(bool@((true)|(false)))$|^((GF)|(TF)|(LF))@(\S)*$|^(nil)@nil$|^string@(\S)*$/', $parsed ) ){
+    if ( !preg_match( '/(*UTF8)^(int@((\-)|(\+)){0,1}(\p{N})+)$|(bool@((true)|(false)))$|^((GF)|(TF)|(LF))@(\S)*$|^(nil)@nil$|^string@(\S)*$/', $parsed ) ){
         echo $parsed."\n";
         exit( 23 );
     } elseif( !preg_match( '/(*UTF8)^([^#\s\\\\]|\\\\[0-9]{3})*$/i', $parsed ) ){
@@ -168,9 +168,8 @@ function checkSymb( $parsed ){
 }
 
 function checkLabel( $parsed ){
-    if ( !preg_match( '/(*UTF8)^(\S)*$/', $parsed ) ){
+    if ( !preg_match( '/(*UTF8)^((\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?)|(\p{L}))((\p{N})|(\p{L})|(\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?))*$/', $parsed ) ){
         echo $parsed."\n";
-
         exit( 23 );
     }
 }
@@ -193,7 +192,7 @@ function parseArg( $parsed ){
         $parsed = preg_replace( '/(LF)/i', "LF", $parsed );
         $parsed = preg_replace( '/(TF)/i', "TF", $parsed );
         return array( "var", $parsed );
-    } elseif( preg_match( '/^(\w)+$/',$parsed ) && $type == 0 ){
+    } elseif( preg_match( '/(*UTF8)^((\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?)|(\p{L}))((\p{N})|(\p{L})|(\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?))*$/',$parsed ) && $type == 0 ){
         // pro pripad ze se jedna o label
         return array( "label", $parsed );
     } elseif( preg_match( '/^(\w)+$/',$parsed ) && $type == 1 ){
@@ -342,7 +341,7 @@ function checkSyntax( $parsed, $xml ){
             break;
         case "MUL":
             definedVar( $parsed, 1 );
-            definedSymb( $parsed, 3 );
+            definedSymb( $parsed, 2 );
             definedSymb( $parsed, 3 );
             definedEnd( $parsed, 4 );
             caseXml( 3, "MUL", $order, $xml, $parsed );
@@ -610,16 +609,20 @@ $xml->startElement('program');
 $xml->writeAttribute('language','IPPcode20');
 
 // kontrola kvuli chybe 21
-$header = "/[ ]*.IPPcode20(\s)*(#)*(\S)*/i";
+$header = "/^[ ]*.IPPcode20(\s)*$/i";
 
-if ( !( preg_match( $header,$FLine ) ) ){
-    echo "$FLine\n";
-    exit( 21 );
-} 
 // komentar je soucasti hlavicky
 if ( preg_match( '/#((\s)*(\S)*)*/', $FLine ) ){
     incrementComment();
 }
+
+$FLine = preg_replace( '/#((\s)*(\S)*)*/', '', $FLine );
+
+//print( "$FLine\n" );
+
+if ( !( preg_match( $header,$FLine ) ) ){
+    exit( 21 );
+} 
 
 // dokud je co cist tak ctu
 while ( ( $line = getLine( $FLine ) ) != NULL ){

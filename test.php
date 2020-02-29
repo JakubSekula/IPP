@@ -145,7 +145,7 @@ function rcTosrc( $File ){
 }
 
 
-function writeSucces( $parseOut, $origFile, $expectedRv, $parseRv ){
+function writeSucces( $parseOut, $cmpFile, $expectedRv, $parseRv ){
     global $successful;
     $successful++;
     $cmpFile = rcToSrc( $cmpFile );
