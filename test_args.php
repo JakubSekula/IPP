@@ -15,9 +15,9 @@ if ( $argc > 1 ){
         if ( preg_match( '/test\.php/', $current ) ){
             continue;
         }
-        if ( preg_match( '/^(\-){1,2}help$/', $current ) ){
+        if ( preg_match( '/^(\-){2}help$/', $current ) ){
             $help_argument = 1;
-        } elseif ( preg_match( '/^(\-){1,2}directory=(((\.\.\/)|(\w))+(\/)*)+$/', $current ) ) {
+        } elseif ( preg_match( '/^(\-){2}directory=(((\.\.\/)|(\S))+(\/)*)+$/', $current ) ) {
             $pos = strpos( $current, "=" );
             $path = substr( $current, $pos + 1 );
             if ( !is_dir( "$path" ) ){
@@ -26,25 +26,25 @@ if ( $argc > 1 ){
             if ( $path != "" ){
                 $directory = $path;
             }
-        } elseif( preg_match( '/^(\-){1,2}recursive$/', $current ) ){
+        } elseif( preg_match( '/^(\-){2}recursive$/', $current ) ){
             $recursive = 1;
-        } elseif( preg_match( '/^(\-){1,2}parse-script=(((\.\.\/)|(\w))+(\/)*)+$/', $current ) ){
+        } elseif( preg_match( '/^(\-){2}parse-script=(((\.\.\/)|(\S))+(\/)*)+$/', $current ) ){
             $pos = strpos( $current, "=" );
             $path = substr( $current, $pos + 1 );
             if ( $path != "" ){
-                $parsescript = $path."parse.php";
+                $parsescript = $path."/parse.php";
             }
-        } elseif( preg_match( '/^(\-){1,2}int-script=(((\.\.\/)|(\w))+(\/)*)+$/', $current ) ){
+        } elseif( preg_match( '/^(\-){2}int-script=(((\.\.\/)|(\S))+(\/)*)+$/', $current ) ){
             $pos = strpos( $current, "=" );
             $path = substr( $current, $pos + 1 );
             if ( $path != "" ){
-                $intscript = $path;
+                $intscript = $path."/interpret.py";
             }
-        } elseif( preg_match( '/^(\-){1,2}parse-only$/', $current ) ){
+        } elseif( preg_match( '/^(\-){2}parse-only$/', $current ) ){
             $parseonly = 1;
-        } elseif( preg_match( '/^(\-){1,2}int-only$/', $current ) ){
+        } elseif( preg_match( '/^(\-){2}int-only$/', $current ) ){
             $intonly = 1;
-        } elseif( preg_match( '/^(\-){1,2}jexamxml=(((\.\.\/)|(\w))+(\/)*)+$/', $current ) ){
+        } elseif( preg_match( '/^(\-){2}jexamxml=(((\.\.\/)|(\S))+(\/)*)+$/', $current ) ){
             $pos = strpos( $current, "=" );
             $path = substr( $current, $pos + 1 );
             if ( $path != "" ){
