@@ -58,9 +58,17 @@ def well_formatted():
     except:
         exit( 31 )
 
+def execute( program ):
+    
+    global order_inc
+    
+    i = 0
+
+    while i < order_inc:
+        print( program[ i ] )
+        i = i + 1
+
 params()
-
-
 well_formatted()
 
 tree = ET.parse( source )
@@ -79,14 +87,9 @@ if( header[ 'language' ] != "IPPcode20" ):
 instructions = []
 
 for instr in root.findall( 'instruction' ):
-    
-    arg1 = ""
-    arg2 = ""
-    arg3 = ""
-    arg1atrib = ""
-    arg2atrib = ""
-    arg3atrib = ""
-    
+
+    array_test = []
+
     order = instr.get( 'order' )
     order_inc = order_inc + 1
 
@@ -94,12 +97,20 @@ for instr in root.findall( 'instruction' ):
         exit( 32 )
 
     opcode = instr.get( 'opcode' )
-    print( order,opcode )
+    #print( order,opcode )
+    array_test.append( order_inc )
+    array_test.append( opcode )
     i = 0
-    while ( i <= 3 ):
-        try:
-            arg1 = instr.find('arg1').text
-            arg1atrib = instr.find('arg1').attrib
-        except:
-            break
-        i = i + 1
+
+    args = []
+
+    for test in instr:
+        arg_array = []
+        arg_array.append( test.attrib[ 'type' ] )
+        arg_array.append( test.text )
+        args.append( arg_array )
+       #print( test.attrib, test.text )
+    array_test.append( args )
+    instructions.append( array_test )
+
+execute( instructions )
