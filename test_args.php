@@ -1,5 +1,13 @@
 <?php
 
+/*                                                  */
+/*             Jakub Sekula ( xsekul01 )            */
+/*                                                  */
+
+/*
+** Skript test_args.php slouzi pouze pro parsovani argumentu skriptu test.php
+*/
+
 $directory = ".";
 global $parsescript;
 $parsescript = "parse.php";
@@ -12,15 +20,18 @@ $recursive = 0;
 
 if ( $argc > 1 ){
     foreach( $argv as $current ){
+        // prvni argument je samotny skript ktery spoustim
         if ( preg_match( '/test\.php/', $current ) ){
             continue;
         }
         if ( preg_match( '/^(\-){2}help$/', $current ) ){
             $help_argument = 1;
         } elseif ( preg_match( '/^(\-){2}directory=(((\.\.\/)|(\S))+(\/)*)+$/', $current ) ) {
+            // do path nastavim string za =
             $pos = strpos( $current, "=" );
             $path = substr( $current, $pos + 1 );
             if ( !is_dir( "$path" ) ){
+                // jestlize path neni dir
                 exit( 11 );
             }
             if ( $path != "" ){
@@ -51,12 +62,13 @@ if ( $argc > 1 ){
                 $jexamxml = $path."/jexamxml.jar";
             }
         } else {
-            echo $current;
+            // jine argumenty jsou chybou
             exit( 10 );
         }
     }
 }
 
+// jestlize je zadan --help musi byt jediny parametr
 if ( $argc > 2 ){
     if ( $help_argument == 1 ){
         exit( 10 );
@@ -67,31 +79,15 @@ if ( $help_argument == 1 ){
     echo "Skript (test.phpv jazyce PHP 7.4) bude sloužit pro automatické testování postupné\naplikaceparse.phpainterpret.py12. Skript projde zadaný adresář s testy a využije\nje pro automatickéotestování správné funkčnosti obou předchozích programů včetně\nvygenerování přehledného souhrnuv HTML 5 do standardního výstupu. \n";
     exit( 0 );
 }
-
+// kombinace parametru ktere spolu nemohou byt
 if ( $parseonly == 1 && ( $intonly == 1 || $intscript != "interpret.py" ) ){
     exit( 10 );
 } elseif( $intonly == 1 && ( $parseonly == 1 || $intscript != "interpret.py" ) ){
     exit( 10 );
 }
-
-/* if ( !file_exists( $intscript."/interpret.py" ) ){
-    exit( 11 );
-} */
-
+// jestlize soubor neexistuje 
 if ( !file_exists( $parsescript ) ){
     exit( 11 );
 }
 
-/* echo "--help: $help_argument\n";
-echo "--directory=path: $directory\n";
-echo "--recursive: $recursive\n";
-echo "--parse-script: $parsescript\n";
-echo "--int-script: $intscript\n";
-echo "--parsed-only: $parseonly\n";
-echo "--int-only: $intonly\n";
-echo "--jexamxml: $jexamxml\n"; */
-
-
-
-// TODO kontrola jexamxml jestli existuje
 ?>

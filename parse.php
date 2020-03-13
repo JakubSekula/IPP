@@ -4,6 +4,8 @@
 // globalni promenna pro xml writer
 global $xml;
 
+ini_set('display_errors', 'stderr');
+
 $type;
 $order;
 $test;
@@ -18,6 +20,11 @@ $labeldiff = array();
 
 $xml = new XMLWriter();
 
+/*
+** Funkce kontroluje jestli jsou Labely unikatni, kvuli rozsireni statp
+** parametry jsou token a index tokenu v poli tokenu
+*/
+
 function checkDuplicitLabels( $parsed, $index ){
     global $labeldiff;
     global $labels;
@@ -27,6 +34,10 @@ function checkDuplicitLabels( $parsed, $index ){
         $labels++;
     }
 }
+
+/*
+** inkrementace pocitacu rozsireni statp
+*/
 
 function incrementOrder(){
     global $order;
@@ -38,12 +49,18 @@ function incrementComment(){
     $comments++;
 }
 
+/*
+** Zapis statistik rozrireni statp
+** parametry jsou argumenty prikazove radky a cesta k souboru
+*/
+
 function writeStatp( $arrayargs, $path ){
     global $comments;
     global $jumps;
     global $labels;
     global $order;
 
+    // otevreni souboru ciste pro zapis
     $file = fopen( $path, "w" );
 
     foreach( $arrayargs as $arg ){
@@ -60,7 +77,10 @@ function writeStatp( $arrayargs, $path ){
     fclose( $file );
 }
 
-// kontrola spravnosti argumentu
+/*
+** Kontrola argumentu skriptu
+** parametry jsou --help, vsechny argumenty a cesta ke slozce se vstupem
+*/
 
 function checkArgs( $help_argument, $arrayargs, $filePath ){
     global $statp;
@@ -95,9 +115,11 @@ function checkArgs( $help_argument, $arrayargs, $filePath ){
 }
 
 /*
-*
-* Nasleduji kontroly formatu
-*
+** Nasleduji kontroly formatu a jestli jsou definovane
+*/
+
+/*
+** parametr je token, index je pozice tokenu v poli
 */
 
 function checkVar( $parsed ){
@@ -145,6 +167,17 @@ function definedEnd( $parsed, $index ){
 
 }
 
+function definedType( $parsed, $index ){
+    if( isset( $parsed[ $index ] ) ){
+        if ( preg_match( '/^(\s)*$/', $parsed[ $index ] ) ){
+            exit( 23 );
+        }
+        checkType( $parsed[ $index ] );
+    } else {
+        exit( 23 );
+    }
+}
+
 function definedLabel( $parsed, $index ){
     if( isset( $parsed[ $index ] ) ){
         if ( preg_match( '/^(\s)*$/', $parsed[ $index ] ) ){
@@ -156,31 +189,34 @@ function definedLabel( $parsed, $index ){
     }
 }
 
+/*
+** prima kontrola formatu
+*/
+
 function checkSymb( $parsed ){
     // prvni se kontroluje spravnost formalni v elseif jestli zde nejsou nepovolone znaky
     if ( !preg_match( '/(*UTF8)^(int@((\-)|(\+)){0,1}(\p{N})+)$|(bool@((true)|(false)))$|^((GF)|(TF)|(LF))@(\S)*$|^(nil)@nil$|^string@(\S)*$/', $parsed ) ){
-        echo $parsed."\n";
         exit( 23 );
     } elseif( !preg_match( '/(*UTF8)^([^#\s\\\\]|\\\\[0-9]{3})*$/i', $parsed ) ){
-        echo $parsed."\n";
         exit( 23 );
     }
 }
 
 function checkLabel( $parsed ){
     if ( !preg_match( '/(*UTF8)^((\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?)|(\p{L}))((\p{N})|(\p{L})|(\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?))*$/', $parsed ) ){
-        echo $parsed."\n";
         exit( 23 );
     }
 }
 
 function checkType( $parsed ){
     if ( !preg_match( '/^((int)|(bool)|(string))$/', $parsed ) ){
-        echo $parsed."\n";
-
         exit( 23 );
     }
 }
+
+/*
+** Parsovani argumentu kvuli xml formatu
+*/
 
 function parseArg( $parsed ){
     
@@ -222,9 +258,8 @@ function parseArg( $parsed ){
 }
 
 /*
-*
-* Vystup v xml formatu
-*
+** Vystup v xml formatu
+** parametry jsou pocet instrukci, operacni kod, instrukce, xml soubor, token
 */
 
 function caseXml( $iter, $opcode, $order, $xml, $parsed ){
@@ -249,9 +284,8 @@ function caseXml( $iter, $opcode, $order, $xml, $parsed ){
 
 
 /*
-*
-* Case pro jednotlive instrukce
-*
+** Case pro jednotlive instrukce
+** xml je globalni promenna pro xml file
 */
 
 function checkSyntax( $parsed, $xml ){
@@ -305,7 +339,7 @@ function checkSyntax( $parsed, $xml ){
             break;
         case "READ":
             definedVar( $parsed, 1 );
-            checkType( $parsed[ 2 ] );
+            definedType( $parsed, 2 );
             $type = 1;
             definedEnd( $parsed, 3 );            
             caseXml( 2, "READ", $order, $xml, $parsed );
@@ -485,7 +519,10 @@ function checkSyntax( $parsed, $xml ){
     }
 }
 
-// navraci 1 a kontroluje radek ze vstupu
+/*
+** kontrola zda-li neni dany radek OEF, jestli ze je vraci NULL
+** parametrem je radek vstupu
+*/
 function returnLine( $line ){
     if ( ( $line ) || ( $line ) != 'EOF' ){
         return $line;
@@ -494,19 +531,26 @@ function returnLine( $line ){
     }
 }
 
-// ziska radek vstupu
+/*
+** nacte radek
+** parametr je slozka se vstupem
+*/
 function getLine( $file ){
     $line = fgets( STDIN );
-    // dokud neni radek jen odradkovani
+    // dokud je radek jen odradkovani
     while ( $line == "\n" ){
         $line = fgets( STDIN );
     }
     return returnLine( $line );
 }
 
-// kontrola pro chybu 22, jestli je keyword spravne
+/*
+** kontroluje jestli je token klicove slovo pomoci pole ve kterem jsou vsechny funkce
+*/
+
 function isKeyWord( $token ){
 
+    // klicova slovo na vstupu muze byt malym, ale zde se prevede na velke kvuli porovnavani retezcu
     $token = strtoupper( $token );
 
     $keyWords = array(  "MOVE", "CREATEFRAME", "PUSHFRAME", "POPFRAME", "DEFVAR", "CALL",
@@ -520,7 +564,10 @@ function isKeyWord( $token ){
     return;
 }
 
-// rozcleneni radku na tokeny
+/*
+** odstraneni mezer z radku vetsi mezery nahradi za 1
+** parametrem je radek vstupu a xml pristup
+*/
 function parseLine( $line, $xml ){
 
     global $comments;
@@ -547,6 +594,7 @@ function parseLine( $line, $xml ){
 $help_argument = array();
 $arrayargs = array();
 $filePath = "";
+$stats_entered = false;
 
 // kopntrola vstupnich argumentu
 
@@ -559,12 +607,16 @@ if ( $argc > 1 ){
         if ( preg_match( '/^(\-){1,2}help$/', $current ) ){
             array_push( $help_argument, 'help' );
         } elseif ( preg_match( '/^(\-){1,2}stats=((..\/)*(\w+)(\/){0,1})+$/', $current ) ) {
+            if( $stats_entered == true ){
+                exit( 10 );
+            }
             // rozdeleni podle =
             $pos = strpos( $current, "=" );
             $path = substr( $current, $pos + 1 );
             array_push( $arrayargs, "$current" );
             $filePath = $path;
             $args = 1;
+            $stats_entered = true;
         } elseif( preg_match( '/^(\-){1,2}loc$/', $current ) ){
             array_push( $arrayargs, 'loc' );
         } elseif( preg_match( '/^(-){1,2}comments$/', $current ) ){
@@ -583,8 +635,7 @@ checkArgs( $help_argument, $arrayargs, $filePath );
 
 //  jestlize je vstup prazdny
 if ( !( $FLine = fgets( STDIN ) ) ){
-echo "Dick\n";
-exit( 21 );
+    exit( 21 );
 }
 // nahradim bile znaky na zacatku radku za ''
 $FLine = preg_replace( '/^(\s)*/', '', $FLine );
@@ -616,9 +667,8 @@ if ( preg_match( '/#((\s)*(\S)*)*/', $FLine ) ){
     incrementComment();
 }
 
+// nahrazeni komentare a vse za nim za ''
 $FLine = preg_replace( '/#((\s)*(\S)*)*/', '', $FLine );
-
-//print( "$FLine\n" );
 
 if ( !( preg_match( $header,$FLine ) ) ){
     exit( 21 );
@@ -647,5 +697,4 @@ if ( $args ==  1 ){
     writeStatp( $arrayargs, $filePath );
 }
 
-//TODO zkusit READ
 ?>

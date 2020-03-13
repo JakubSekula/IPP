@@ -255,6 +255,7 @@ function srcToOut( $File ){
 
 /*
 ** Funkce addFile otevira vstupni soubry, pokud nejsou vytvari je
+** parametr je puvodni slozka s testem
 */
 
 function addFiles( $origFile ){
@@ -278,6 +279,7 @@ function addFiles( $origFile ){
 
 /*
 ** writeSucces zapisuje html kod pro uspesny kod
+** parametry jsou vystup z parseru, slozka s testy pro porovnani, ocekavana navratova hodnota, return hodnota parseru
 */
 
 function writeSucces( $parseOut, $cmpFile, $expectedRv, $parseRv ){
@@ -295,6 +297,7 @@ function writeSucces( $parseOut, $cmpFile, $expectedRv, $parseRv ){
 
 /*
 ** writeError je opak funkce writeSucces
+* parametry jsou slozka s testy, slozka pro porovnani, ocekavana return value a parser return value
 */
 
 function writeError( $parseFile, $cmpFile, $expectedRv, $parseRv ){
@@ -314,6 +317,7 @@ function writeError( $parseFile, $cmpFile, $expectedRv, $parseRv ){
 
 /*
 ** checkJexamxml kontroluje vystupy pomoci nastroje jexam
+** parametry jsou vystup parseru, ocekavany vystup, ocekavana return value a parser return value
 */
 
 function checkJexamxml( $parseFile, $cmpFile, $expectedRv, $parseRv ){
@@ -342,11 +346,12 @@ function checkJexamxml( $parseFile, $cmpFile, $expectedRv, $parseRv ){
 
 /*
 ** provede pruchod interpretem
+** parametry jsou input soubor, ouput soubor a in soubor
 */
 
 function  testInterpret( $input, $output, $in ){
     global $intscript;
-    $command = "python3 $intscript"." --input=$in"." < $input > $output";
+    $command = "python $intscript"." --input=$in"." < $input > $output";
     //print( "\n\n$command\n\n" );
     exec( $command, $out, $rv );
     $rcFile = outToRc( $output );
@@ -358,6 +363,7 @@ function  testInterpret( $input, $output, $in ){
 
 /*
 ** funkce testuje ocekavan hodnotu a hodnotu testu a potom vypisuje bud uspesny test nebo test, ktery selhal
+** parametry jsou slozka s testy, slozka s ocekavanymi vystupy a navratova hodnota z testu
 */
 
 function testRc( $testPath, $file, $rv ){
@@ -388,6 +394,7 @@ function testRc( $testPath, $file, $rv ){
 
 /*
 ** getRv provadi zapis return hodnot do slozek pripadne do in .rc souboru doplni 0 
+** parametry jsou originalni slozka navratovy kod parseru a vystup parseru
 */
 
 function getRv( $origFile, $parseRv, $parseOut ){
@@ -425,6 +432,7 @@ function getRv( $origFile, $parseRv, $parseOut ){
 
 /*
 ** existsRcFile doplni do input rc souboru 0 pokud je prazdny
+** parametr je originialni soubor
 */
 
 function existsRcFile( $origFile ){
@@ -440,6 +448,7 @@ function existsRcFile( $origFile ){
 
 /*
 ** funkce provede command
+** parametry jsou prikaz a vystupni soubor
 */
 
 function executeCommand( $command, $outFile ){
