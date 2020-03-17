@@ -13,9 +13,14 @@ from xml.sax import make_parser
 from glob import glob
 
 source = ""
-input = ""
+input_file = ""
+input_is = "stdin"
+source_is = "stdin"
 order_inc = 0
+instruction_counter = 0
 JUMP = 0
+
+PUSHS = []
 
 GF = dict()
 LF = dict()
@@ -32,22 +37,26 @@ def params():
     entered = 0
     help = 0
     global source
-    global input
+    global input_file
+
+    global source_is
+    global input_is
 
     for arg in sys.argv:
         if ( arg == "--help" ):
             help = 1
         elif ( re.search( '^(\-){2}source=(((\.\.\/)|(\S))+(\/)*)+$', arg ) ):
             source = arg.split( "=" )[ 1 ]
+            source_is = "file"
             if Path( source ).is_file():
                 ...
             else:
                 exit( 11 )
             entered = entered + 1
         elif ( re.search( '^(\-){2}input=(((\.\.\/)|(\S))+(\/)*)+$', arg ) ):
-            input = arg.split( "=" )[ 1 ]
-            if Path( input ).is_file():
-                ...
+            input_file = arg.split( "=" )[ 1 ]
+            if Path( input_file ).is_file():
+                input_is = "file"
             else:
                 exit( 11 )
             entered = entered + 1
@@ -160,6 +169,10 @@ def checkNil( argument ):
     if ( not ( re.search( '^nil$', argument ) ) ):
         exit( 23 )
 
+def checkType( argument ):
+    if( not ( argument == "int" or argument == "bool" or argument == "string" ) ):
+        exit( 23 )
+
 def getBool( argument ):
     if( argument == "true" ):
         return( True )
@@ -170,7 +183,7 @@ def check_args( args, expected ):
     i = 0
     maxe = len( expected )
     maxa = len ( args )
-    
+
     while ( i < maxa ):
         if( expected[ i ] == "var" ):
             checkVar( args[ i ][ 1 ] )
@@ -187,6 +200,8 @@ def check_args( args, expected ):
                 checkBool( args[ i ][ 1 ] )
             elif( args[ i ][ 0 ] == "nil" ):
                 checkNil( args[ i ][ 1 ] )
+            elif( args[ i ][ 0 ] == "nil" ):
+                checkType( args[ i ][ 1 ] )
             else:
                 print( "!!! Je potreba osetrit:" )
                 print( args[ i ][ 0 ] ,args[ i ][ 1 ] )
@@ -206,6 +221,9 @@ def getType( argument ):
     global TFT
     global LFT
 
+    """ print( "!!!!!!" )
+    print( argument ) """
+
     if( argument[ 0 ] == "var" ):
         frame, content = at_split( argument[ 1 ] )
         if( frame == "GF" ):
@@ -220,6 +238,16 @@ def getType( argument ):
         return ( str )
     elif( argument[ 0 ] == "bool" ):
         return ( bool )
+    elif( argument[ 0 ] == "nil" ):
+        return( None )
+    elif( re.search( '^((TF)|(GF)|(LF))@((\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?)|([a-zA-Z]))(\d*|([a-zA-Z])|(\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?))*$', argument ) ):
+        frame, content = at_split( argument )
+        if( frame == "GF" ):
+            return ( GFT[ content ] )
+        elif( frame == "LF" ):
+            return ( LFT[ content ] )
+        elif( frame == "TF" ):
+            return ( TFT[ content ] )
 
 
 def line_handler( key_word, args, i ):
@@ -234,6 +262,14 @@ def line_handler( key_word, args, i ):
     global TFT
     global LFT
 
+    global instruction_counter
+    global source_is
+    global input_is
+
+    global PUSHS
+
+    instruction_counter += 1
+    
     if ( JUMP == 1 and key_word != "LABEL" ):
         return i
     if ( key_word == "DEFVAR" ):
@@ -273,32 +309,51 @@ def line_handler( key_word, args, i ):
     elif( key_word == "LABEL" ): # co se ma stat kdyz budu skakat a narazim na label ktery neni ten na ktery skacu mel bych ho zapsat nebo ne ?
         if( JUMP == 1 ):
             if ( UNTIL[ 'LOOK' ] == args[ 0 ][ 1 ] ):
-                dict.clear( UNTIL )
+                #print( args[ 0 ][ 1 ] )
+                if( args[ 0 ][ 1 ] not in LABEL ):
+                    LABEL[ args[ 0 ][ 1 ] ] = i
                 JUMP = 0
                 return i
         for word in args:
             if ( word[ 0 ] == "label" ):
                 LABEL[ word[ 1 ] ] = i
-    elif( key_word == "JUMPIFEQ" ):
+    elif( key_word == "JUMPIFEQ" or key_word == "JUMPIFNEQ" ):
         first = ''
+        firstT = ''
         second = ''
         secondT = ''
         label = ''
+        count = 0
+
         for word in args:
-            if( word[ 0 ] == "label" ):
+            if( word[ 0 ] == "label" and count == 0 ):
                 label = word[ 1 ]
             elif( word[ 0 ] == "var" ):
                 var = getValue( word[ 1 ] )
-                first = var
+                if( count == 1 ):
+                    first = var
+                    firstT = getType( word[ 1 ] )
+                else:
+                    second = var
+                    secondT = getType( word[ 1 ] )
             else:
                 data_type, content = symbget( word )
-                second = content
-                secondT = data_type
-        if ( ( not ( type( first ) is secondT ) ) or ( type( first ) is None or secondT == None ) ):
+                if( count == 2 ):
+                    second = content
+                    secondT = data_type
+                else: 
+                    first = content
+                    firstT = data_type
+        if ( ( ( type( first ) != secondT ) or ( type( second ) != firstT  ) ) or ( ( first is None ) or ( second is None ) ) ):
             exit( 53 )
-        if( first == second ):
-            UNTIL[ 'LOOK' ] = label
-            JUMP = 1
+        if( key_word == "JUMPIFEQ" ):
+            if( first == second ):
+                UNTIL[ 'LOOK' ] = label
+                JUMP = 1
+        elif( key_word == "JUMPIFNEQ" ):
+            if( first != second ):
+                UNTIL[ 'LOOK' ] = label
+                JUMP = 1
     elif( key_word == "WRITE" ):
         for word in args:
             if ( word[ 0 ] == "var" ):
@@ -345,9 +400,10 @@ def line_handler( key_word, args, i ):
         for word in args:
             if ( word[ 0 ] == "label" ):
                 return( LABEL[ word[ 1 ] ] )
-    elif( key_word == "STRLEN" ):
+    elif( key_word == "STRLEN" or key_word == "TYPE" ):
         to_frame = ''
-        chars = 0
+        first = ''
+        result = 0
         count = 0
         for word in args:
             count = count + 1
@@ -356,9 +412,20 @@ def line_handler( key_word, args, i ):
                     to_frame = word[ 1 ]   
             elif( count == 2 ):
                 if( word[ 0 ] == "var" ):
-                    var = getValue( word[ 1 ] )
-                    chars = len( var )
-        writeTo( to_frame, chars, type( chars ) )
+                    first = getValue( word[ 1 ] )
+        if( key_word == "STRLEN" ):
+            result = len( first )
+        elif( key_word == "TYPE" ):
+            result = getType( word )
+            if( result is int ):
+                result = "int"
+            elif( result is str ):
+                result = "string"
+            elif( result is bool ):
+                result = "bool"
+            elif( result is None ):
+                result = "nil"
+        writeTo( to_frame, result, type( result ) )
     elif( key_word == "EXIT" ):
         #dodelat check symb
         for word in args:
@@ -373,7 +440,7 @@ def line_handler( key_word, args, i ):
             code = getValue( word[ 1 ] )
             sys.stderr.write( str( code ) )
     elif( key_word == "ADD" or key_word == "SUB" or key_word == "MUL" or key_word == "IDIV" or key_word == "LT" or key_word == "GT" or key_word == "EQ"
-          or key_word == "AND" or key_word == "OR" or key_word == "NOT" or key_word == "STRI2INT" ): # nyni umoznuji aby datovy typ nebyl jen int coz je chyba
+          or key_word == "AND" or key_word == "OR" or key_word == "NOT" or key_word == "STRI2INT" or key_word == "GETCHAR" or key_word == "SETCHAR" ): # nyni umoznuji aby datovy typ nebyl jen int coz je chyba
         check_args( args, [ 'var','symb', 'symb' ] )
         counter = 0
         to_frame = ''
@@ -416,6 +483,8 @@ def line_handler( key_word, args, i ):
             else:
                 exit( 53 )
         elif( key_word == "LT" ): # jeste nil
+            if( ( op1t is None ) or ( op2t is None ) ):
+                exit( 53 )
             if( op1t == op2t ):
                 vysledek = ''
                 poradi = 0
@@ -427,22 +496,27 @@ def line_handler( key_word, args, i ):
                             vysledek = heej
                         poradi += 1 
                     if ( vysledek == op1 ):
-                        op1 = True
+                        op1 = "true"
                     else:
-                        op1 = False
+                        op1 = "false"
                 elif( op1t is int ):
                     if( op1 < op2 ):
-                        op1 = True
+                        op1 = "true"
                     else:
-                        op2 = False
+                        op2 = "false"
                 elif( op1t is bool ):
                     op1 = getBool( op1 )
                     op2 = getBool( op2 )
                     if( op1 < op2 ):
-                        op1 = True
+                        op1 = "true"
                     else:
-                        op1 = False
+                        op1 = "false"
+            else:
+                exit( 53 )
+                        
         elif( key_word == "GT" ):
+            if( ( op1t is None ) or ( op2t is None ) ):
+                exit( 53 )
             if( op1t == op2t ):
                 vysledek = ''
                 poradi = 0
@@ -454,40 +528,45 @@ def line_handler( key_word, args, i ):
                             vysledek = heej
                         poradi += 1 
                     if ( vysledek == op1 ):
-                        op1 = False
+                        op1 = "false"
                     else:
-                        op1 = True
+                        op1 = "true"
                 elif( op1t is int ):
                     if( op1 > op2 ):
-                        op1 = True
+                        op1 = "true"
                     else:
-                        op1 = False
+                        op1 = "false"
                 elif( op1t is bool ):
                     op1 = getBool( op1 )
                     op2 = getBool( op2 )
                     if( op1 > op2 ):
-                        op1 = True
+                        op1 = "true"
                     else:
-                        op1 = False
+                        op1 = "false"
         elif( key_word == "EQ" ):
-            if( op1t == op2t ):
+            if( ( op1t is None ) or ( op2t is None ) ):
+                if( op1 == op2 ):
+                    op1 = "true"
+                else:
+                    op1 = "false"
+            elif( op1t == op2t ):
                 if( op1t is str ):
                     if( op1 == op2 ):
-                        op1 = True
+                        op1 = "true"
                     else:
-                        op1 = False
+                        op1 = "false"
                 elif( op1t is int ):
                     if ( op1 == op2 ):
-                        op1 = True
+                        op1 = "true"
                     else:
-                        op1 = False
+                        op1 = "false"
                 elif( op1t is bool ):
                     op1 = getBool( op1 )
                     op2 = getBool( op2 )
                     if( op1 == op2 ):
-                        op1 = True
+                        op1 = "true"
                     else:
-                        op1 = False
+                        op1 = "false"
         elif( key_word == "AND" ):
             if( op1t == op2t and op1t is bool ):
                 op1 = getBool( op1 )
@@ -518,6 +597,24 @@ def line_handler( key_word, args, i ):
                 op1 = ord( op1[ int( op2 ) ] )
             except:
                 exit( 58 )
+        elif( key_word == "GETCHAR" ):
+            sample = len( op1 )
+            if( op1t is not str ):
+                exit( 53 )
+            if( op2t is not int ):
+                exit( 53 )
+            if( sample < int( op2 ) ):
+                exit( 58 )
+            op1 = op1[ int( op2 ) ]
+        elif( key_word == "SETCHAR" ):
+            sentence = getValue( to_frame )
+            sentence = list( sentence )
+            if( op1t is not int ):
+                exit( 53 )
+            if( op2t is not str ):
+                exit( 53 )
+            sentence[ int( op1 ) ] = op2[ 0 ]
+            op1 = ''.join( sentence )
         writeTo( to_frame, op1, type( op1 ) )
     elif( key_word == "INT2CHAR" ):
         check_args( args, [ 'var','symb' ] )
@@ -541,6 +638,66 @@ def line_handler( key_word, args, i ):
         except:
             exit( 58 )
         writeTo( to_frame, op1, type( op1 ) )
+    elif( key_word == "BREAK" ):
+        sys.stderr.write( str( instruction_counter ) )
+        exit( 0 )
+    elif( key_word == "READ" ):
+        check_args( args, [ 'var','type' ] )
+
+        to_frame = ''
+        rtype = ''
+        count = 0
+        
+        for word in args:
+            if( count == 0 ):
+                to_frame = word[ 1 ]
+            elif( count == 1 ):
+                rtype = word[ 1 ]
+            count += 1 
+        if( input_is == "file" ):
+            line = file1.readline()
+        else:
+            line = input()
+        if( rtype == "int" ):
+            line = int( line )
+            writeTo( to_frame, line, int )
+        elif( rtype == "string" ):
+            writeTo( to_frame, line, str )
+        elif( rtype == "bool" ):
+            if( re.search('true', line,  re.IGNORECASE) ):
+                line = "true"
+            else:
+                line = "false"
+            writeTo( to_frame, line, bool )
+    elif( key_word == "PUSHS" ):
+        check_args( args, [ 'symb' ] )
+        
+        what = ""
+        data_type = ""
+        push_element = []
+
+        for word in args:
+            what = word[ 1 ]
+            data_type = getType( word )
+        push_element.append( what )
+        push_element.append( data_type )
+        PUSHS.append( push_element )
+    elif( key_word == "POPS" ):
+        check_args( args, [ "var" ] )
+
+        to_frame = ""
+        value = ""
+        data_type = ""
+
+        for word in args:
+            to_frame = word[ 1 ]
+        try:
+            value = PUSHS.pop()
+            data_type = value[ 1 ]
+            value = value[ 0 ]
+        except:
+            exit( 56 )
+        writeTo( to_frame, value, data_type )
     else:
         exit( 32 )
     return i
@@ -556,7 +713,20 @@ def execute( program ):
         i = line_handler( program[ i ][ 1 ], program[ i ][ 2 ], i )
         i = i + 1
 
-params()
+params() 
+
+if( source_is == "stdin" ):
+    f = open( "TmpSourceFile9865", "w+" )
+
+    source = ""
+
+    for line in sys.stdin:
+        source = source + line
+
+    f.write( source )
+
+    source = "TmpSourceFile9865"
+
 well_formatted()
 
 tree = ET.parse( source )
@@ -573,6 +743,9 @@ if( header[ 'language' ] != "IPPcode20" ):
     exit( 105 )
 
 instructions = []
+
+if( input_is == "file" ):
+    file1 = open( input_file, 'r')
 
 for instr in root.findall( 'instruction' ):
 
@@ -602,6 +775,8 @@ for instr in root.findall( 'instruction' ):
     instructions.append( array_test )
 
 execute( instructions )
+if( input_is == "file" ):
+    file1.close()
 
 """ for test in GF:
     print( test, GF[test] )
