@@ -97,16 +97,7 @@ def convertor( argument ):
     convert = chr( int( convert ) )
     return( start + str( convert ) + finish )
 
-def setType( argument ):
-    if( type( argument ) is bool ):
-        return "bool"
-    elif( type( argument ) is int ):
-        return "int"
-    elif( type( argument ) is str ):
-        return "str"
-
 def well_formatted( source ):
-    
     try:
         xml = ET.fromstring( source )
     except:
@@ -117,19 +108,6 @@ def at_split( token ):
     token2 = token.split( "@", 1 )[ 1 ]
 
     return ( token1, token2 )
-
-def symbget( token ):
-    data_type = ''
-    content = ''
-    if( token[ 1 ] != None ):
-        data_type, content = token[ 0 ], token[ 1 ]
-    else:
-        data_type, content = token[ 0 ], ''
-    if ( data_type == "string" ):
-        data_type = "str"
-    if ( data_type == "nil" ):
-        data_type = None
-    return ( data_type, content )
 
 def varExists( frame, var ):
     
@@ -268,6 +246,16 @@ def getValue( argument ):
     else:
         return argument
 
+def convert( first, second ):
+    if( ( first is None ) or ( second is None ) ):
+        ...
+    else:
+        if( re.search( '\\\d{0,3}', first ) ):
+            first = convertor( first )
+        if( re.search( '\\\d{0,3}', second ) ):
+            second = convertor( second )
+    return ( first, second )
+
 def getType( argument ):
 
     global GFT
@@ -356,7 +344,6 @@ def line_handler( key_word, args, i ):
     global LFT
 
     global instruction_counter
-    global source_is
     global input_is
     global tf_accessible
     global lf_accessible
@@ -368,61 +355,72 @@ def line_handler( key_word, args, i ):
     global PUSHS
 
     instruction_counter += 1
-    
-    if ( key_word == "DEFVAR" ):
+
+    to_frame = ""
+    content = ''
+    data_type = ""
+    first = ''
+    firstT = ''
+    second = ''
+    secondT = ''
+    label = ''
+    count = 0
+    op1 = None
+    op2 = None
+    op1t = ''
+    op2t = ''
+
+    if ( key_word == "DEFVAR" or key_word == "POPS" ):
         check_args( args, [ 'var' ] )
         for word in args:
             if( word[ 0 ] == "var" ):
-                frame, variable = at_split( word[ 1 ] )
-                frameExists( frame )
-                if( frame == "GF" ):
-                    if variable in GF:
-                        exit( 52 )
-                    GF[ variable ] = ''
-                elif( frame == "TF" ):
-                    if variable in TF:
-                        exit( 52 )
-                    TF[ variable ] = ''
-                elif( frame == "LF" ):
-                    if variable in LF:
-                        exit( 52 )
-                    LF[ variable ] = ''
-                else:
-                    exit( 55 )
+                to_frame = word
+        if( key_word == "DEFVAR" ):
+            frame, variable = at_split( to_frame[ 1 ] )
+            frameExists( frame )
+            if( frame == "GF" ):
+                if variable in GF:
+                    exit( 52 )
+                GF[ variable ] = ''
+            elif( frame == "TF" ):
+                if variable in TF:
+                    exit( 52 )
+                TF[ variable ] = ''
+            elif( frame == "LF" ):
+                if variable in LF:
+                    exit( 52 )
+                LF[ variable ] = ''
+            else:
+                exit( 55 )
+        elif( key_word == "POPS" ):
+            try:
+                content = PUSHS.pop()
+                data_type = content[ 1 ]
+                content = content[ 0 ]
+            except:
+                exit( 56 )
+            writeTo( to_frame[ 1 ], content, data_type )
     elif( key_word == "MOVE" ):
         check_args( args, [ 'var', 'symb' ] )
-        frame = ''
-        data_type = ''
-        content = ''
-        count = 0
-        to_frame = ''
         for word in args:
             count = count + 1
             if( word[ 0 ] == "var" and count == 1 ):
                 to_frame = word[ 1 ]
             else:
-                #print( "prehazuju", word[ 1 ] )
-                #data_type, content = symbget( word )
-                #print("stary", content, data_type )
                 content = getValue( word[ 1 ] )
                 data_type = getType( word )
                 if( content == '' and data_type is None ):
                     exit( 56 )
-                #print("novy", content2, data_type2 )
             if( data_type != '' ):
                 if ( content == "nil" ):
                     content = ''
                     data_type = "nil"
+                if( data_type == "str" and content is None ):
+                    content = ''
                 writeTo( to_frame, content, data_type )
-    elif( key_word == "LABEL" ): # co se ma stat kdyz budu skakat a narazim na label ktery neni ten na ktery skacu mel bych ho zapsat nebo ne ?
+    elif( key_word == "LABEL" ):
         ...
     elif( key_word == "JUMPIFEQ" or key_word == "JUMPIFNEQ" ):
-        first = ''
-        firstT = ''
-        second = ''
-        secondT = ''
-        label = ''
-        count = 0
         for word in args:
             if( word[ 0 ] == "label" and count == 0 ):
                 label = word[ 1 ]
@@ -435,7 +433,8 @@ def line_handler( key_word, args, i ):
                     second = var
                     secondT = getType( word[ 1 ] )
             else:
-                data_type, content = symbget( word )
+                content = getValue( word[ 1 ] )
+                data_type = getType( word )
                 if( count == 2 ):
                     second = content
                     secondT = data_type
@@ -448,7 +447,7 @@ def line_handler( key_word, args, i ):
         else:
             exit( 52 )
         if ( ( ( firstT != secondT ) or ( secondT != firstT  ) ) ):
-            if( firstT is None or secondT is None ):
+            if( ( firstT is None or secondT is None ) or ( firstT == "nil" or secondT == "nil" ) ):
                 ...
             else:
                 exit( 53 )
@@ -456,8 +455,6 @@ def line_handler( key_word, args, i ):
             if( first == "nil" or second == "nil" ):
                 if( first == "nil" and second == "nil" ):
                     return( jump( label, i ) )
-                else:
-                    ...
             elif( firstT is None and secondT is None ):
                 if( first == second ):
                     return( jump( label, i ) )
@@ -469,10 +466,7 @@ def line_handler( key_word, args, i ):
             elif( firstT == "str" or secondT == "str" ):
                 if( secondT is None or firstT is None ):
                     return( jump( label, i ) )
-                if( re.search( '\\\d{0,3}', first ) ):
-                    first = convertor( first )
-                if( re.search( '\\\d{0,3}', second ) ):
-                    second = convertor( second )
+                first, second = convert( first, second )
                 if( secondT is None ):
                     ...
                 elif( str( first ) == str( second ) ):
@@ -499,10 +493,7 @@ def line_handler( key_word, args, i ):
             elif( firstT == "str" or secondT == "str" ):
                 if( secondT is None or firstT is None ):
                     return( jump( label, i ) )
-                if( re.search( '\\\d{0,3}', first ) ):
-                    first = convertor( first )
-                if( re.search( '\\\d{0,3}', second ) ):
-                    second = convertor( second )
+                first, second = convert( first, second )
                 if( secondT is None ):
                     ...
                 elif( str( first ) != str( second ) ):
@@ -515,8 +506,6 @@ def line_handler( key_word, args, i ):
 
     elif( key_word == "CALL" ):
         check_args( args, [ 'label' ] )
-        
-        label = ''
         for word in args:
             label = word[ 1 ]
         CALL_STACK.append( i )
@@ -552,40 +541,42 @@ def line_handler( key_word, args, i ):
                     print( 'false', end='' )
     elif( key_word == "CONCAT" ):
         where = ''
-        count = 0
-        first = ''
-        firstT = ''
-        second = ''
-        secondT = ''
         write = ''
         for word in args:
             count = count + 1
             if ( word[ 0 ] == "var" ):
                 var = getValue( word[ 1 ] )
+                typeT = getType( word[ 1 ] )
+
                 if( count == 1 ):
                     where = word[ 1 ]
                 elif( count == 2 ):
                     first = var
+                    firstT = typeT
                 else:
                     second = var
+                    secondT = typeT
             else:
                 if ( count == 1 ):
                     exit( 105 )
-                data_type, content = symbget( word )
+                content = getValue( word[ 1 ] )
+                data_type = getType( word )
                 if( count == 2 ):
                     first = content
                     firstT = data_type
                 elif( count == 3 ):
                     second = content
                     secondT = data_type
-        if( ( first != '' and second == '' ) or ( first == '' and second != '' ) ):
+        if( firstT is None or secondT is None ):
             exit( 56 )
         if( not ( firstT == secondT ) ):
             exit( 53 )
-        first = first + second
+        if( not( first is None and second is None ) ):
+            first = first + second
+        else:
+            first = ''
         writeTo( where, first, data_type )
-    elif( key_word == "JUMP" ):
-        
+    elif( key_word == "JUMP" ):        
         label = ''
 
         for word in args:
@@ -594,11 +585,7 @@ def line_handler( key_word, args, i ):
             return( jump( label, i ) )
 
     elif( key_word == "STRLEN" or key_word == "TYPE" ):
-        to_frame = ''
-        first = ''
-        firstT = ''
         result = 0
-        count = 0
         heej = 0
         for word in args:
             count = count + 1
@@ -644,7 +631,6 @@ def line_handler( key_word, args, i ):
                 result = ''
             writeTo( to_frame, result, "str" )
     elif( key_word == "EXIT" ):
-        #dodelat check symb
         for word in args:
             code = getValue( word[ 1 ] )
             data_type = getType( word[ 1 ] )
@@ -660,31 +646,23 @@ def line_handler( key_word, args, i ):
                 exit( int( code ) )
             else:
                 exit( 57 )
-    elif( key_word == "DPRINT" ): #je to opravdu na stderr ? :D
-        # checksymb
+    elif( key_word == "DPRINT" ): 
         for word in args:
             code = getValue( word[ 1 ] )
             sys.stderr.write( str( code ) )
     elif( key_word == "ADD" or key_word == "SUB" or key_word == "MUL" or key_word == "IDIV" or key_word == "LT" or key_word == "GT" or key_word == "EQ"
           or key_word == "AND" or key_word == "OR" or key_word == "NOT" or key_word == "STRI2INT" or key_word == "GETCHAR" or key_word == "SETCHAR" ): # nyni umoznuji aby datovy typ nebyl jen int coz je chyba
         check_args( args, [ 'var','symb', 'symb' ] )
-        counter = 0
-        to_frame = ''
-        op1 = None
-        op2 = None
-        op1t = ''
-        op2t = ''
-
         for word in args:
-            if( counter == 0 ):
+            if( count == 0 ):
                 to_frame = word[ 1 ]
-            elif( counter == 1 ):
+            elif( count == 1 ):
                 op1 = getValue( word[ 1 ] )
                 op1t = getType( word )
-            elif( counter == 2 ):
+            elif( count == 2 ):
                 op2 = getValue( word[ 1 ] )
                 op2t = getType( word )
-            counter += 1
+            count += 1
         if( key_word == "ADD" ):
             missingValue( op1, op2 )
             if( op1t == op2t ):
@@ -722,12 +700,7 @@ def line_handler( key_word, args, i ):
                 exit( 53 )
             if( ( op1t is None ) or ( op2t is None ) ):
                 exit( 53 )
-            if( op1 is not None ):
-                if( re.match( '^\\\d{0,3}', op1 ) ):
-                    op1 = convertor( op1 )
-            if( op2 is not None ):
-                if( re.match( '^\\\d{0,3}', op2 ) ):
-                    op2 = convertor( op2 )
+            op1, op2 = convert( op1, op2 )
             if( op1t == op2t ):
                 vysledek = ''
                 poradi = 0
@@ -768,12 +741,7 @@ def line_handler( key_word, args, i ):
             missingValue( op1, op2 )
             if( op1t == "nil" or op2t == "nil" ):
                 exit( 53 )
-            if( op1 is not None ):
-                if( re.search( '\\\d{0,3}', op1 ) ):
-                    op1 = convertor( op1 )
-            if( op2 is not None ):
-                if( re.search( '\\\d{0,3}', op2 ) ):
-                    op2 = convertor( op2 )
+            op1, op2 = convert( op1, op2 )
 
             if( ( op1t is None ) or ( op2t is None ) ):
                 exit( 53 )
@@ -816,15 +784,12 @@ def line_handler( key_word, args, i ):
         elif( key_word == "EQ" ):
             if( op1t == "nil" or op2t == "nil" ):
                 ...
+            elif( op1t is None or op2t is None ):
+                exit( 56 )
             else:
-                missingValue( op1, op2 )
+                ...
             
-            if( op1 is not None ):
-                if( re.search( '\\\d{0,3}', op1 ) ):
-                    op1 = convertor( op1 )
-            if( op2 is not None ):
-                if( re.search( '\\\d{0,3}', op2 ) ):
-                    op2 = convertor( op2 )
+            op1, op2 = convert( op1, op2 )
             
             if( ( op1t is None ) or ( op2t is None ) ):
                 if( op1 == op2 ):
@@ -860,10 +825,7 @@ def line_handler( key_word, args, i ):
         elif( key_word == "AND" ):
             missingValue( op1, op2 )
 
-            if( re.search( '\\\d{0,3}', op1 ) ):
-                op1 = convertor( op1 )
-            if( re.search( '\\\d{0,3}', op2 ) ):
-                op2 = convertor( op2 )
+            op1, op2 = convert( op1, op2 )
 
             if( op1t == op2t and op1t == "bool" ):
                 op1 = getBool( op1 )
@@ -906,17 +868,9 @@ def line_handler( key_word, args, i ):
                 exit( 53 )
             op1t = "bool"
         elif( key_word == "STRI2INT" ):
-            if( op2t is None ):
+            if( ( op2t is None ) or ( op1t is None ) ):
                 exit( 56 )
-            if( op1t is None ):
-                exit( 56 )
-            if( op1t != "str" and op1 == "nil" ):
-                exit( 53 )
-            if( op2t != "int" and op2 == "nil" ):
-                exit( 53 )
-            if( op1t != "str" and op1 != "nil" ):
-                exit( 53 )
-            if( op2t != "int" and op2 != "nil" ):
+            if( ( op1t != "str" and op1 == "nil" ) or ( op2t != "int" and op2 == "nil" ) or ( op1t != "str" and op1 != "nil" ) or ( op2t != "int" and op2 != "nil" ) ):
                 exit( 53 )
             if( int( op2 ) < 0 ):
                 exit( 58 )
@@ -929,9 +883,7 @@ def line_handler( key_word, args, i ):
             sample = len( op1 )
             if( op1 == '' or op2 == '' ):
                 exit( 56 )
-            if( op1t != "str" ):
-                exit( 53 )
-            if( op2t != "int" ):
+            if( ( op1t != "str" ) or ( op2t != "int" ) ):
                 exit( 53 )
             if( sample <= int( op2 ) or int( op2 ) < 0 ):
                 exit( 58 )
@@ -962,8 +914,7 @@ def line_handler( key_word, args, i ):
                 exit( 53 )
             if( op2t != "str" ):
                 exit( 53 )
-            if( re.search( '\\\d{0,3}', op2 ) ):
-                op2 = convertor( op2 )
+            op1, op2 = convert( op1, op2 )
             sentence[ int( op1 ) ] = op2[ 0 ]
             op1 = ''.join( sentence )
             op1t = "str"
@@ -971,18 +922,16 @@ def line_handler( key_word, args, i ):
     elif( key_word == "INT2CHAR" ):
         check_args( args, [ 'var','symb' ] )
         
-        to_frame = ''
-        counter = 0
         ip1 = 0
         op1t = ''
         
         for word in args:
-            if( counter == 0 ):
+            if( count == 0 ):
                 to_frame = word[ 1 ]
-            elif( counter == 1 ):
+            elif( count == 1 ):
                 op1 = getValue( word[ 1 ] )
                 op1t = getType( word )
-            counter += 1
+            count += 1
         
         if( op1t == "nil" ):
             exit( 53 )
@@ -1001,9 +950,7 @@ def line_handler( key_word, args, i ):
     elif( key_word == "READ" ):
         check_args( args, [ 'var','type' ] )
 
-        to_frame = ''
         rtype = ''
-        count = 0
         stop = 0
         
         for word in args:
@@ -1056,7 +1003,6 @@ def line_handler( key_word, args, i ):
         check_args( args, [ 'symb' ] )
         
         what = ""
-        data_type = ""
         push_element = []
         check = 0
 
@@ -1084,27 +1030,9 @@ def line_handler( key_word, args, i ):
         push_element.append( what )
         push_element.append( data_type )
         PUSHS.append( push_element )
-    elif( key_word == "POPS" ):
-        check_args( args, [ "var" ] )
-
-        to_frame = ""
-        value = ""
-        data_type = ""
-
-        for word in args:
-            to_frame = word[ 1 ]
-        try:
-            value = PUSHS.pop()
-            data_type = value[ 1 ]
-            value = value[ 0 ]
-        except:
-            exit( 56 )
-        writeTo( to_frame, value, data_type )
     elif( key_word == "CREATEFRAME" ):
         check_args( args, [] )
-
         TF.clear()
-
         tf_accessible = 1
     elif( key_word == "PUSHFRAME" ):
         check_args( args, [] )
@@ -1143,8 +1071,7 @@ def line_handler( key_word, args, i ):
             FRAME_STACK.pop()
             FRAME_STACK_T.pop()
         else:
-            lf_accessible = 0
-
+            lf_accessible = 0  
     else:
         exit( 32 )
     return i
@@ -1160,11 +1087,13 @@ def execute( program ):
     while( r <= 1 ):
         if( r == 0 ):
             while i < order_inc:
-                i = labelThing( program[ i ][ 1 ], program[ i ][ 2 ], i )
+                key_word = program[ i ][ 1 ].upper()
+                i = labelThing( key_word, program[ i ][ 2 ], i )
                 i = i + 1 
         else:
             while i < order_inc:
-                i = line_handler( program[ i ][ 1 ], program[ i ][ 2 ], i )
+                key_word = program[ i ][ 1 ].upper()
+                i = line_handler( key_word, program[ i ][ 2 ], i )
                 i = i + 1 
         r += 1
         i = 0
@@ -1228,22 +1157,5 @@ for instr in root.findall( 'instruction' ):
 
 execute( instructions )
 
-#print( FRAME_STACK )
-
-if( JUMP == 1 ):
-    exit( 52 )
-
 if( input_is == "file" ):
     file1.close()
-
-""" for test in GF:
-    print( test, GF[test] )
-
-for test in TF:
-    print( test, TF[test] )
-
-for test in LF:
-    print( test, LF[test] )
-
-for test in LABEL:
-    print( test, LABEL[test] )"""
