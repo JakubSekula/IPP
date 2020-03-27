@@ -26,12 +26,11 @@ if ( $argc > 1 ){
         }
         if ( preg_match( '/^(\-){2}help$/', $current ) ){
             $help_argument = 1;
-        } elseif ( preg_match( '/^(\-){2}directory=(((\.\.\/)|(\S))+(\/)*)+$/', $current ) ) {
+        } elseif ( preg_match( '/^(\-){2}directory=/', $current ) ) {
             // do path nastavim string za =
             $pos = strpos( $current, "=" );
             $path = substr( $current, $pos + 1 );
             if ( !is_dir( "$path" ) ){
-                // jestlize path neni dir
                 exit( 11 );
             }
             if ( $path != "" ){
@@ -39,27 +38,33 @@ if ( $argc > 1 ){
             }
         } elseif( preg_match( '/^(\-){2}recursive$/', $current ) ){
             $recursive = 1;
-        } elseif( preg_match( '/^(\-){2}parse-script=(((\.\.\/)|(\S))+(\/)*)+$/', $current ) ){
+        } elseif( preg_match( '/^(\-){2}parse-script=/', $current ) ){
             $pos = strpos( $current, "=" );
             $path = substr( $current, $pos + 1 );
-            if ( $path != "" ){
-                $parsescript = $path."/parse.php";
+            if ( is_file( $path ) ){
+                $parsescript = $path;
+            } else {
+                exit( 11 );
             }
-        } elseif( preg_match( '/^(\-){2}int-script=(((\.\.\/)|(\S))+(\/)*)+$/', $current ) ){
+        } elseif( preg_match( '/^(\-){2}int-script=/', $current ) ){
             $pos = strpos( $current, "=" );
             $path = substr( $current, $pos + 1 );
-            if ( $path != "" ){
-                $intscript = $path."/interpret.py";
+            if ( is_file( $path ) ){
+                $intscript = $path;
+            } else {
+                exit( 11 );
             }
         } elseif( preg_match( '/^(\-){2}parse-only$/', $current ) ){
             $parseonly = 1;
         } elseif( preg_match( '/^(\-){2}int-only$/', $current ) ){
             $intonly = 1;
-        } elseif( preg_match( '/^(\-){2}jexamxml=(((\.\.\/)|(\S))+(\/)*)+$/', $current ) ){
+        } elseif( preg_match( '/^(\-){2}jexamxml=/', $current ) ){
             $pos = strpos( $current, "=" );
             $path = substr( $current, $pos + 1 );
-            if ( $path != "" ){
-                $jexamxml = $path."/jexamxml.jar";
+            if ( is_file( $path ) ){
+                $jexamxml = $path;
+            } else {
+                exit( 11 );
             }
         } else {
             // jine argumenty jsou chybou

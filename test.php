@@ -351,7 +351,7 @@ function checkJexamxml( $parseFile, $cmpFile, $expectedRv, $parseRv ){
 
 function  testInterpret( $input, $output, $in ){
     global $intscript;
-    $command = "python $intscript"." --input=$in"." < $input > $output";
+    $command = "python3 $intscript"." --input=$in"." < $input > $output";
     //print( "\n\n$command\n\n" );
     exec( $command, $out, $rv );
     $rcFile = outToRc( $output );
