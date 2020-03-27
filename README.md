@@ -1,3 +1,3 @@
 # IPP
 
-Projekt 1 VUT IPP, easy
+Projekt VUT IPP
