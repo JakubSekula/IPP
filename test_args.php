@@ -17,6 +17,8 @@ $help_argument = 0;
 $parseonly = 0;
 $intonly = 0;
 $recursive = 0;
+$testlist = "";
+$match_regex = '';
 
 if ( $argc > 1 ){
     foreach( $argv as $current ){
@@ -66,6 +68,17 @@ if ( $argc > 1 ){
             } else {
                 exit( 11 );
             }
+        } elseif( preg_match( '/^(\-){2}testlist=/', $current ) ) {
+            $pos = strpos( $current, "=" );
+            $file = substr( $current, $pos + 1 );
+            if ( is_file( $file ) ){
+                $testlist = $file;
+            } else {
+                exit( 11 );
+            }
+        } elseif ( preg_match( '/^(\-){2}match=/', $current ) ){
+            $pos = strpos( $current, "=" );
+            $match_regex = substr( $current, $pos + 1 );
         } else {
             // jine argumenty jsou chybou
             exit( 10 );
@@ -84,10 +97,13 @@ if ( $help_argument == 1 ){
     echo "Skript (test.phpv jazyce PHP 7.4) bude sloužit pro automatické testování postupné\naplikaceparse.phpainterpret.py12. Skript projde zadaný adresář s testy a využije\nje pro automatickéotestování správné funkčnosti obou předchozích programů včetně\nvygenerování přehledného souhrnuv HTML 5 do standardního výstupu. \n";
     exit( 0 );
 }
+
 // kombinace parametru ktere spolu nemohou byt
 if ( $parseonly == 1 && ( $intonly == 1 || $intscript != "interpret.py" ) ){
     exit( 10 );
 } elseif( $intonly == 1 && ( $parseonly == 1 || $intscript != "interpret.py" ) ){
+    exit( 10 );
+} elseif( $directory != "." && $testlist != '' ){
     exit( 10 );
 }
 // jestlize soubor neexistuje 

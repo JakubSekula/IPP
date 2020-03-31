@@ -133,6 +133,7 @@ function writeParams(){
     global $parseonly;
     global $intonly;
     global $recursive;
+    global $testlist;
 
     $zmenaDirectory = 0;
     $zmenaParsesscript = 0;
@@ -142,6 +143,7 @@ function writeParams(){
     $zmenaParseonly = 0;
     $zmenaIntonly = 0;
     $zmenaRecursive = 0;
+    $zmenaTestfile = 0;
 
     if( $parsescript != "parse.php" ){ $zmenaParsesscript = 1; };
     if( $directory != "." ){ $zmenaDirectory = 1; };
@@ -151,9 +153,10 @@ function writeParams(){
     if( $parseonly != 0 ){ $zmenaParseonly = 1; };
     if( $intonly != 0 ){ $zmenaIntonly = 1; };
     if( $recursive != 0 ){ $zmenaRecursive = 1; };
+    if( $testlist != '' ){ $zmenaTestfile = 1; };
 
-    $args = array( '-1' => "--help", '0' => "--directory=path", '1' => "--recursive", '2' => "--parse-script=path", '3' => "--int-script=file", '4' => "--parse-only", '5' => "--int-only", '6' => "--jexamxml=file" );
-    $zadany = array( '-1' => "$zmenaHelp_argument", '0' => "$zmenaDirectory", '1' => "$zmenaRecursive", '2' => "$zmenaParsesscript", '3' => "$zmenaIntscript", '4' => "$zmenaParseonly", '5' => "$zmenaIntonly", '6' => "$zmenaJexamxml" );
+    $args = array( '-1' => "--help", '0' => "--directory=path", '1' => "--recursive", '2' => "--parse-script=path", '3' => "--int-script=file", '4' => "--parse-only", '5' => "--int-only", '6' => "--jexamxml=file", '7' => "--testlist" );
+    $zadany = array( '-1' => "$zmenaHelp_argument", '0' => "$zmenaDirectory", '1' => "$zmenaRecursive", '2' => "$zmenaParsesscript", '3' => "$zmenaIntscript", '4' => "$zmenaParseonly", '5' => "$zmenaIntonly", '6' => "$zmenaJexamxml", '7' => "$zmenaTestfile" );
 
     $i = 0;
 
@@ -163,7 +166,7 @@ function writeParams(){
                 echo "<th>Parametr</th>";
                 echo "<th>Zadan</th>";
             echo "</tr>";
-            while( $i < 8 ){
+            while( $i < 9 ){
                 echo "<tr>";
                     echo "<td><b>".$args[ $i-1 ]."</b></td>";
                     if( $zadany[ $i-1 ] == 1 ){
@@ -286,7 +289,8 @@ function writeSucces( $parseOut, $cmpFile, $expectedRv, $parseRv ){
     global $successful;
     $successful++;
     $cmpFile = rcToSrc( $cmpFile );
-    $cmpFile = getcwd()."/".$cmpFile;
+    $cmpFile = $cmpFile;
+    $cmpFile = outToSrc( $cmpFile );
     echo "<tr>";
     echo    "<td>$cmpFile</td>";
     echo    "<td id='navrat'>$parseRv</td>";
@@ -305,7 +309,9 @@ function writeError( $parseFile, $cmpFile, $expectedRv, $parseRv ){
     $failed++;
     $cmpFile = rcToSrc( $cmpFile );
 
-    $cmpFile = getcwd()."/".$cmpFile;
+    $cmpFile = $cmpFile;
+
+    $cmpFile = outToSrc( $cmpFile );
 
     echo "<tr>";
     echo    "<td>$cmpFile</td>";
@@ -349,10 +355,9 @@ function checkJexamxml( $parseFile, $cmpFile, $expectedRv, $parseRv ){
 ** parametry jsou input soubor, ouput soubor a in soubor
 */
 
-function  testInterpret( $input, $output, $in ){
+function  testInterpret( $source, $output, $in ){
     global $intscript;
-    $command = "python3 $intscript"." --input=$in"." < $input > $output";
-    //print( "\n\n$command\n\n" );
+    $command = "python3 $intscript --stats=statif --vars --insts"." --input=$in"." < $source > $output";
     exec( $command, $out, $rv );
     $rcFile = outToRc( $output );
     $rcFileH = fopen( "$rcFile", "w+" );
@@ -423,6 +428,19 @@ function getRv( $origFile, $parseRv, $parseOut ){
     $intOut = preg_replace( '/_parser.out/', '_int.out', $intOut );
     $inFile = rcTosrc( $origFile );
     $inFile = srcToin( $inFile );
+    if( $parseRv != 0 ){
+        $srcFile = inToOut( $inFile );
+        $srcFile = outToRc( $srcFile );
+        $expectedFile = fopen( $srcFile, "r" );
+        $expectedRv = fgets( $expectedFile );
+        $srcFIle = rcToSrc( $srcFile );
+        if( $expectedRv == $parseRv ){
+            writeSucces( '', $origFile, $expectedRv, $parseRv );
+        } else {
+            writeError( '', $origFile, $expectedRv, $parseRv );
+        }
+        return;
+    }
     $rv = testInterpret( $parseOut, $intOut, $inFile );
     $origFile = rcTosrc( $origFile );
     testRc( $origFile, $intOut, $rv );
@@ -473,7 +491,7 @@ function testThis( $testPath, $file ){
     global $successful;
     global $failed;
     if ( preg_match( '/\.src/', $file ) ){
-        $testPath = getcwd()."/".$testPath;
+        $testPath = realpath( $testPath );
         $origFile = $testPath;
         existsRcFile( $origFile );
         addFiles( $origFile );
@@ -499,7 +517,31 @@ function testThis( $testPath, $file ){
 */
 
 function goOver( $directory, $recursive ){
-    $adresar = array_diff( scandir( "$directory"), array( '..', '.' ));
+
+    global $match_regex;
+
+    if( $match_regex != '' ){
+        $file = substr( strrchr( $directory, "/" ), 1 );
+        $arr = explode( ".", $file, 2 );
+        $file = $arr[ 0 ];
+        $match_regex = $match_regex;
+        if( !preg_match( '/'.$match_regex.'/i', $file ) ){
+            return;
+        }
+    }
+
+    if( is_dir( $directory ) ){
+        $adresar = array_diff( scandir( "$directory"), array( '..', '.' ));
+    } elseif( is_file( $directory ) ) {
+        if( !( preg_match( '/.src$/', $directory ) ) ){
+            exit( 11 );
+        }
+        $file = $dir = substr( strrchr( $directory, "/" ), 1 );
+        testThis( $directory, $file );
+        return;
+    } else {
+        exit( 10 ); #navratovy ?
+    }
 
     foreach( $adresar as $file ){
         if ( !is_dir( "$directory"."/".$file ) ){
@@ -516,7 +558,16 @@ function goOver( $directory, $recursive ){
 }
 
 writeParams();
-goOver( $directory, $recursive );
+
+if( $testlist != '' ){
+    $tests = fopen( $testlist, "r" );
+    while( ( $line = fgets( $tests ) ) != false ){
+        goOver( trim( $line ), $recursive );
+    }
+    fclose( $tests );
+} else {
+    goOver( $directory, $recursive );
+}
 writeStats();
 
 /*

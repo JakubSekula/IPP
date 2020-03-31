@@ -16,10 +16,13 @@ source = ""
 input_file = ""
 input_is = "stdin"
 source_is = "stdin"
+stati_file = ""
 order_inc = 0
 instruction_counter = 0
 JUMP = 0
 RUN = 0
+STATI = 0
+STATI_VARS = 0
 
 PUSHS = []
 
@@ -42,18 +45,23 @@ lf_accessible = 0
 
 def params():
 
+    count = 0
     entered = 0
     help = 0
+
     global source
+    global STATI
+    extension = 0
     global input_file
+    global stati_file
 
     global source_is
     global input_is
 
     for arg in sys.argv:
-        if ( arg == "--help" ):
+        if( arg == "--help" ):
             help = 1
-        elif ( re.search( '^(\-){2}source=(((\.\.\/)|(\S))+(\/)*)+$', arg ) ):
+        elif( re.search( '^(\-){2}source=', arg ) ):
             source = arg.split( "=" )[ 1 ]
             source_is = "file"
             if Path( source ).is_file():
@@ -61,47 +69,112 @@ def params():
             else:
                 exit( 11 )
             entered = entered + 1
-        elif ( re.search( '^(\-){2}input=(((\.\.\/)|(\S))+(\/)*)+$', arg ) ):
+        elif( re.search( '^(\-){2}input=', arg ) ):
             input_file = arg.split( "=" )[ 1 ]
             if Path( input_file ).is_file():
                 input_is = "file"
             else:
                 exit( 11 )
             entered = entered + 1
-        elif ( arg == "interpret.py" ):
-            ...
+        elif( re.search( '^(\-){2}stats=', arg ) ):
+            stati_file = arg.split( "=" )[ 1 ]
+            STATI = 1
+        elif( re.search( '^(\-){2}insts$', arg ) ):
+            extension = 1
+        elif( re.search( '^(\-){2}vars$', arg ) ):
+            extension = 1
         else:
-            exit( 10 )
-    if ( ( help == 1 ) and entered >= 1 ):
+            if( count == 0 ):
+                ...
+            else:
+                exit( 10 )
+        count += 1
+    if( ( help == 1 ) and entered >= 1 ):
         exit( 10 )
-    elif ( entered == 0 ):
+    elif( entered == 0 ):
+        exit( 10 )
+    if( STATI == 0 and extension == 1 ):
         exit( 10 )
 
 def convertor( argument ):
-    start = argument.split("\\")[ 0 ]
-    finish = argument.split("\\")[ 1 ]
-    if( finish[ 0 ] == str( 0 ) ):
-        convert = finish[ 1 ] + finish[ 2 ]
-        finish = list( finish )
-        finish[ 0 ] = ''
-        finish[ 1 ] = ''
-        finish[ 2 ] = ''
-        finish = ''.join( finish )
-    else:
-        convert = finish[ 0 ] + finish[ 1 ] + finish[ 2 ]
-        finish = list( finish )
-        finish[ 0 ] = ''
-        finish[ 1 ] = ''
-        finish[ 2 ] = ''
-        finish = ''.join( finish )
-    convert = chr( int( convert ) )
-    return( start + str( convert ) + finish )
+    position = 0
+    argument = list( argument )
+    converted = ''
+    for char in argument:
+        if( char == "\\" ):
+            if( argument[ position + 1 ] == "0" ):
+                convert = argument[ position + 2 ] + argument[ position + 3 ]
+                try:
+                    converted = chr( int( convert ) )
+                except:
+                    exit( 105 )
+            else:
+                convert = argument[ position + 1 ] + argument[ position + 2 ] + argument[ position + 3 ]
+                try:
+                    converted = chr( int( convert ) )
+                except:
+                    exit( 105 )
+            argument[ position ] = converted
+            argument[ position + 1 ] = ''
+            argument[ position + 2 ] = ''
+            argument[ position + 3 ] = ''
+        position += 1
+    argument = ''.join( argument )
+    return( argument )
+
+def checkRegisters():
+    
+    global GF
+    global TF
+    global LF
+    global GFT
+    global TFT
+    global LFT
+    global STATI_VARS
+    global tf_accessible
+    global lf_accessible
+    
+    gf = 0
+    tf = 0
+    lf = 0
+    for var in GF:
+        if( var in GFT ):
+            gf += 1
+    if( tf_accessible == 1):
+        for var in TF:
+            if( var in TFT ):
+                tf += 1
+    if( lf_accessible == 1 ):
+        for var in LF:
+            if( var in LFT ):
+                lf += 1
+    total = gf + tf + lf
+    
+    if( STATI_VARS <= total ):
+        STATI_VARS = total
+
+
+def writeStats():
+    
+    global STATI
+    global instruction_counter
+    global stati_file
+    global STATI_VARS
+
+    if( STATI == 1 ):
+        stati = open( stati_file, 'w+')
+        for arg in sys.argv:
+            if( re.search( '^(\-){2}insts$', arg ) ):
+                stati.write( str( instruction_counter ) + "\n" )
+            elif( re.search( '^(\-){2}vars$', arg ) ):
+                stati.write( str( STATI_VARS ) + "\n" )
+        stati.close()
 
 def well_formatted( source ):
     try:
         xml = ET.fromstring( source )
     except:
-        exit( 105 )
+        exit( 31 )
 
 def at_split( token ):
     token1 = token.split( "@", 1 )[ 0 ]
@@ -262,10 +335,6 @@ def getType( argument ):
     global TFT
     global LFT
 
-    """ print( "!!!!!!" )
-    print( argument ) """
-
-    #print( "GETTYPE: ", argument )
     if( argument[ 0 ] == "var" ):
         frame, content = at_split( argument[ 1 ] )
         if( frame == "GF" ):
@@ -320,6 +389,7 @@ def jump( label, i ):
 
 def labelThing( key_word, args, i ):
     
+    global instruction_counter
     global LABEL
 
     if( key_word == "LABEL" ):
@@ -454,54 +524,68 @@ def line_handler( key_word, args, i ):
         if( key_word == "JUMPIFEQ" ):
             if( first == "nil" or second == "nil" ):
                 if( first == "nil" and second == "nil" ):
+                    instruction_counter += 1
                     return( jump( label, i ) )
             elif( firstT is None and secondT is None ):
                 if( first == second ):
+                    instruction_counter += 1
                     return( jump( label, i ) )
             elif( firstT == "int" or secondT == "int" ):
                 if( secondT is None or firstT is None ):
                     exit( 56 )
                 elif( int( first ) == int( second ) ):
+                    instruction_counter += 1
                     return( jump( label, i ) )
             elif( firstT == "str" or secondT == "str" ):
                 if( secondT is None or firstT is None ):
+                    instruction_counter += 1
                     return( jump( label, i ) )
                 first, second = convert( first, second )
                 if( secondT is None ):
                     ...
                 elif( str( first ) == str( second ) ):
+                    instruction_counter += 1
                     return( jump( label, i ) )
             elif( firstT == "bool" or secondT == "bool" ):
                 if( secondT is None or firstT is None ):
+                    instruction_counter += 1
                     return( jump( label, i ) )
                 if( first ==  second  ):
+                    instruction_counter += 1
                     return( jump( label, i ) )
         elif( key_word == "JUMPIFNEQ" ):
             if( first == "nil" or second == "nil" ):
                 if( first == "nil" and second == "nil" ):
                     ...
                 else:
+                    instruction_counter += 1
                     return( jump( label, i ) )
             elif( firstT is None and secondT is None ):
                 if( first != second ):
+                    instruction_counter += 1
                     return( jump( label, i ) )
             elif( firstT == "int" or secondT == "int" ):
                 if( secondT is None or firstT is None ):
                     exit( 56 )
                 elif( int( first ) != int( second ) ):
+                    instruction_counter += 1
                     return( jump( label, i ) )
             elif( firstT == "str" or secondT == "str" ):
                 if( secondT is None or firstT is None ):
+                    instruction_counter += 1
                     return( jump( label, i ) )
                 first, second = convert( first, second )
                 if( secondT is None ):
                     ...
                 elif( str( first ) != str( second ) ):
+                    instruction_counter += 1
                     return( jump( label, i ) )
             elif( firstT == "bool" or secondT == "bool" ):
                 if( secondT is None or firstT is None ):
+                    instruction_counter += 1
                     return( jump( label, i ) )
                 if( first !=  second  ):
+                    instruction_counter += 1
                     return( jump( label, i ) )
 
     elif( key_word == "CALL" ):
@@ -509,6 +593,7 @@ def line_handler( key_word, args, i ):
         for word in args:
             label = word[ 1 ]
         CALL_STACK.append( i )
+        instruction_counter += 1
         return( jump( label, i ) )
     elif( key_word == "RETURN" ):
         check_args( args, [] )
@@ -525,10 +610,9 @@ def line_handler( key_word, args, i ):
                     exit( 56 )
                 print( var, end='' )
             elif( word[ 0 ] == "string" ):
-                write = re.sub( '\\\\032', ' ', word[ 1 ] )
-                write = re.sub( '\\\\010', '\n', write )
-                write = re.sub( '\\\\092', '\\\\', write )
-                write = re.sub( '\\\\035', '#', write )
+                write = word[ 1 ]
+                if( re.search( '\\\d{0,3}', write ) ):
+                    write = convertor( write )
                 print( write, end='' )
             elif( word[ 0 ] == "nil" ):
                 print( '', end='' )
@@ -582,6 +666,7 @@ def line_handler( key_word, args, i ):
         for word in args:
             if ( word[ 0 ] == "label" ):
                 label = word[ 1 ]
+            instruction_counter += 1
             return( jump( label, i ) )
 
     elif( key_word == "STRLEN" or key_word == "TYPE" ):
@@ -643,6 +728,7 @@ def line_handler( key_word, args, i ):
             if ( getType( word ) != "int" ):
                 exit( 53 )
             if( int( code ) >= 0 and int( code ) <= 49 ):
+                writeStats()
                 exit( int( code ) )
             else:
                 exit( 57 )
@@ -946,7 +1032,6 @@ def line_handler( key_word, args, i ):
         writeTo( to_frame, op1, type( op1 ) )
     elif( key_word == "BREAK" ):
         sys.stderr.write( str( instruction_counter ) )
-        exit( 0 )
     elif( key_word == "READ" ):
         check_args( args, [ 'var','type' ] )
 
@@ -1094,6 +1179,7 @@ def execute( program ):
             while i < order_inc:
                 key_word = program[ i ][ 1 ].upper()
                 i = line_handler( key_word, program[ i ][ 2 ], i )
+                checkRegisters()
                 i = i + 1 
         r += 1
         i = 0
@@ -1130,6 +1216,12 @@ instructions = []
 if( input_is == "file" ):
     file1 = open( input_file, 'r')
 
+opcode_insts = 0
+
+for child in root:
+    if( child.tag != "instruction" ):
+        exit( 32 )
+
 for instr in root.findall( 'instruction' ):
 
     array_test = []
@@ -1137,12 +1229,13 @@ for instr in root.findall( 'instruction' ):
     order = instr.get( 'order' )
     order_inc = order_inc + 1
 
-    if ( not( order_inc <= int( order ) ) ):
+    if ( not( opcode_insts <= int( order ) ) ):
         exit( 32 )
 
     opcode = instr.get( 'opcode' )
     array_test.append( order_inc )
     array_test.append( opcode )
+    opcode_insts = int( order )
     i = 0
 
     args = []
@@ -1150,6 +1243,10 @@ for instr in root.findall( 'instruction' ):
     for test in instr:
         arg_array = []
         arg_array.append( test.attrib[ 'type' ] )
+        if( not( ( test.attrib[ 'type' ] == "var" ) or ( test.attrib[ 'type' ] == "int" ) 
+            or ( test.attrib[ 'type' ] == "string" ) or ( test.attrib[ 'type' ] == "bool" ) 
+            or ( test.attrib[ 'type' ] == "nil" ) or ( test.attrib[ 'type' ] == "label" ) or ( test.attrib[ 'type' ] == "type" ) ) ):
+            exit( 32 )
         arg_array.append( test.text )
         args.append( arg_array )
     array_test.append( args )
@@ -1158,4 +1255,8 @@ for instr in root.findall( 'instruction' ):
 execute( instructions )
 
 if( input_is == "file" ):
-    file1.close()
+    file1.close() 
+
+# Jestli je pri rozsireni v souboru .src a ne treba .out
+
+writeStats()
