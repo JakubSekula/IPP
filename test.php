@@ -490,6 +490,17 @@ function testThis( $testPath, $file ){
     global $intonly;
     global $successful;
     global $failed;
+    global $match_regex;
+
+    if( $match_regex != '' ){
+        $arr = explode( ".", $file, 2 );
+        $filef = $arr[ 0 ];
+        $match_regex = $match_regex;
+        if( !preg_match( '/'.$match_regex.'/i', $file ) ){
+            return;
+        }
+    }
+
     if ( preg_match( '/\.src/', $file ) ){
         $testPath = realpath( $testPath );
         $origFile = $testPath;
@@ -517,18 +528,6 @@ function testThis( $testPath, $file ){
 */
 
 function goOver( $directory, $recursive ){
-
-    global $match_regex;
-
-    if( $match_regex != '' ){
-        $file = substr( strrchr( $directory, "/" ), 1 );
-        $arr = explode( ".", $file, 2 );
-        $file = $arr[ 0 ];
-        $match_regex = $match_regex;
-        if( !preg_match( '/'.$match_regex.'/i', $file ) ){
-            return;
-        }
-    }
 
     if( is_dir( $directory ) ){
         $adresar = array_diff( scandir( "$directory"), array( '..', '.' ));
