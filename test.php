@@ -109,6 +109,17 @@ h1{
 
 <?php
 
+declare( ticks = 1 );
+
+pcntl_signal( SIGINT, 'signalHandler' );
+
+function signalHandler($signal) {
+    global $pidFile;
+    $command = "rm -rf TmpTestFolder";
+    exec( $command, $out, $rv );
+    exit( 0 );
+}
+
 $successful = 0;
 $failed = 0;
 
@@ -357,7 +368,7 @@ function checkJexamxml( $parseFile, $cmpFile, $expectedRv, $parseRv ){
 
 function  testInterpret( $source, $output, $in ){
     global $intscript;
-    $command = "python3 $intscript --stats=statif --vars --insts"." --input=$in"." < $source > $output";
+    $command = "python3 $intscript"." --input=$in"." < $source > $output";
     exec( $command, $out, $rv );
     $rcFile = outToRc( $output );
     $rcFileH = fopen( "$rcFile", "w+" );

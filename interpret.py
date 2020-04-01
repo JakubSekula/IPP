@@ -1218,39 +1218,49 @@ if( input_is == "file" ):
 
 opcode_insts = 0
 
+TESTING = dict()
+ARGS = dict()
+
+for arg in root.attrib:
+    if( arg == "language" ):
+        ...
+    elif( arg == "name" ):
+        ...
+    elif( arg == "description" ):
+        ...
+    else:
+        exit( 32 )
+
 for child in root:
-    if( child.tag != "instruction" ):
+    if( str( child.tag ) != "instruction" ):
         exit( 32 )
+    if( ( int( child.attrib[ 'order' ] ) in TESTING ) or ( int( child.attrib[ 'order' ] ) < 0 ) ):
+        exit( 32 )
+    TESTING[ int( child.attrib[ 'order' ] ) ] = child
 
-for instr in root.findall( 'instruction' ):
 
-    array_test = []
-
-    order = instr.get( 'order' )
+for element in sorted( TESTING.keys() ):
+    instruction = []
+    instruction.append( int( element ) )
+    instruction.append( TESTING[ element ].attrib[ 'opcode' ] )
     order_inc = order_inc + 1
-
-    if ( not( opcode_insts <= int( order ) ) ):
-        exit( 32 )
-
-    opcode = instr.get( 'opcode' )
-    array_test.append( order_inc )
-    array_test.append( opcode )
-    opcode_insts = int( order )
-    i = 0
-
+    for test in TESTING[ element ]:
+        ARGS[ test.tag[ 3: ] ] = test
     args = []
-
-    for test in instr:
+    for test in sorted( ARGS.keys() ):
         arg_array = []
-        arg_array.append( test.attrib[ 'type' ] )
-        if( not( ( test.attrib[ 'type' ] == "var" ) or ( test.attrib[ 'type' ] == "int" ) 
-            or ( test.attrib[ 'type' ] == "string" ) or ( test.attrib[ 'type' ] == "bool" ) 
-            or ( test.attrib[ 'type' ] == "nil" ) or ( test.attrib[ 'type' ] == "label" ) or ( test.attrib[ 'type' ] == "type" ) ) ):
+        arg_array.append( ARGS[ test ].attrib[ 'type' ] )
+        typeT = ARGS[ test ].attrib[ 'type' ]
+        if( ( typeT == "int" ) or ( typeT == "string" ) or ( typeT == "bool" ) or ( typeT == "nil" ) or ( typeT == "type" ) or ( typeT == "label" ) or ( typeT == "var" ) ):
+            ...
+        else:
+            print( typeT )
             exit( 32 )
-        arg_array.append( test.text )
+        arg_array.append( ARGS[ test ].text )
         args.append( arg_array )
-    array_test.append( args )
-    instructions.append( array_test )
+    ARGS.clear()
+    instruction.append( args )
+    instructions.append( instruction)
 
 execute( instructions )
 
