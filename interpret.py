@@ -407,8 +407,11 @@ def checkInt( argument ):
         exit( 32 )
 
 def checkFloat( argument ):
-    if ( not ( re.search( '^((\-)|(\+)){0,1}(\d)x(\d)(\.)(\d)*([p])(\+)(\d)+$', argument ) ) ):
+    try:
+        float.fromhex( argument )
+    except:
         exit( 32 )
+
 
 def checkString( argument ):
     if( argument == None ):
@@ -503,19 +506,25 @@ def check_args( args, expected ):
 def getValue( argument ):
     if( argument is None ):
         return
-
     # jedna se o ramec
     if( re.search( '^((TF)|(GF)|(LF))@((\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?)|([a-zA-Z]))(\d*|([a-zA-Z])|(\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?))*$', argument ) ):
         frame, variable = at_split( argument )
         frameExists( frame )
         code = getFromFrame( frame, variable )
         return code
-    
-    # datovy typ float
-    elif( re.search( '^((\-)|(\+)){0,1}(\d)x(\d)(\.)(\d)*([p])(\+)(\d)+$', argument ) ):
-        return( float.fromhex( argument ) )
     else:
         return argument
+
+def getFloat( op1, op2 ):
+    try:
+        op1 = float.fromhex( op1 )
+    except:
+        ...
+    try:
+        op2 = float.fromhex( op2 )
+    except:
+        ...
+    return( op1, op2 )
 
 # -----------------------------------------------------------
 # Funkce getType
@@ -752,6 +761,11 @@ def line_handler( key_word, args, i ):
                     data_type = "nil"
                 if( data_type == "str" and content is None ):
                     content = ''
+                if( data_type == "float" ):
+                    try:
+                        content = float.fromhex( content )
+                    except:
+                        ...
                 writeTo( to_frame, content, data_type )
     # LABELY resim pri prvnim pruchodu, takze zde uz nic nedelaji
     elif( key_word == "LABEL" ):
@@ -809,7 +823,8 @@ def line_handler( key_word, args, i ):
             elif( firstT == "float" or secondT == "float" ):
                 if( secondT is None or firstT is None ):
                     exit( 56 )
-                elif( float( first ) == float( second ) ):
+                elif( firstT == "float" or secondT == "float" ):
+                    first, second = getFloat( first, second )
                     instruction_counter += 1
                     return( jump( label, i ) )
             elif( firstT == "str" or secondT == "str" ):
@@ -849,9 +864,10 @@ def line_handler( key_word, args, i ):
                     instruction_counter += 1
                     return( jump( label, i ) )
             elif( firstT == "float" or secondT == "float" ):
+                first, second = getFloat( first, second )
                 if( secondT is None or firstT is None ):
                     exit( 56 )
-                elif( float( first ) != float( second ) ):
+                elif( firstT == "float" or secondT == "float" ):
                     instruction_counter += 1
                     return( jump( label, i ) )
             elif( firstT == "str" or secondT == "str" ):
@@ -904,6 +920,17 @@ def line_handler( key_word, args, i ):
                 data_type = getType( word[ 1 ] )
                 if( var == '' and data_type is None ):
                     exit( 56 )
+                if( data_type == "float" ):
+                    try:
+                        print( hex( var ), end='' )
+                        return i
+                    except:
+                        ...
+                    try:
+                        print( float.hex( var ), end='' )
+                        return i
+                    except:
+                        ...
                 print( var, end='' )
             elif( word[ 0 ] == "string" ):
                 write = word[ 1 ]
@@ -915,7 +942,7 @@ def line_handler( key_word, args, i ):
             elif( word[ 0 ] == "int" ):
                 print( word[ 1 ], end='' )
             elif( word[ 0 ] == "float" ):
-                print( word[ 1 ] , end='' )
+                print(  float.fromhex( word[ 1 ] ).hex() , end='' )
             elif( word[ 0 ] == "bool" ):
                 if( word[ 1 ] == "true" ):
                     print( 'true', end='' )
@@ -1068,6 +1095,9 @@ def line_handler( key_word, args, i ):
             missingValue( op1, op2 )
             if( op1t == op2t and op1t == "int" or op1t == "float" ):
                 if( op1t == "float" ):
+                    if( op2t != "float" ):
+                        exit( 53 )
+                    op1, op2 = getFloat( op1, op2 )
                     op1 = float( op1 ) + float( op2 )
                     op1t = "float"
                 else:
@@ -1084,8 +1114,12 @@ def line_handler( key_word, args, i ):
                     op1 = int( op1 ) - int( op2 )
                     op1t = "int"
                 else:
-                    op1 = float( op1 ) - float( op2 )
-                    op1t = "float"
+                    if( op1t == "float" and op2t == "float" ):
+                        op1, op2 = getFloat( op1, op2 )
+                        op1 = float( op1 ) - float( op2 )
+                        op1t = "float"
+                    else:
+                        exit( 53 )
             else:
                 exit( 53 )
         # MUL ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Násobení dvou číselných hodnot
@@ -1097,6 +1131,9 @@ def line_handler( key_word, args, i ):
                     op1 = int( op1 ) * int( op2 )
                     op1t = "int"
                 elif( op1t == "float" ):
+                    if( op2t != "float" ):
+                        exit( 53 )
+                    op1, op2 = getFloat( op1, op2 )
                     op1 = float( op1 ) * float( op2 )
                     op1t = "float"
             else:
@@ -1104,6 +1141,7 @@ def line_handler( key_word, args, i ):
         elif( key_word == "DIV" ):
             missingValue( op1, op2 )
             if( op1t == op2t and op1t == "float" ):
+                op1, op2 = getFloat( op1, op2 )
                 if( float( op2 ) == 0 ):
                     exit( 57 )
                 op1 = float( op1 ) / float( op2 )
@@ -1161,6 +1199,7 @@ def line_handler( key_word, args, i ):
                     else:
                         op1 = "false"
                 elif( op1t == "float" ):
+                    op1, op2 = getFloat( op1, op2 )
                     if( float( op1 ) < float( op2 ) ):
                         op1 = "true"
                     else:
@@ -1208,6 +1247,7 @@ def line_handler( key_word, args, i ):
                     else:
                         op1 = "false"
                 elif( op1t == "float" ):
+                    op1, op2 = getFloat( op1, op2 )
                     if( float( op1 ) > float( op2 ) ):
                         op1 = "true"
                     else:
@@ -1253,6 +1293,7 @@ def line_handler( key_word, args, i ):
                     else:
                         op1 = "false"
                 elif( op1t == "float" ):
+                    op1, op2 = getFloat( op1, op2 )
                     if ( float( op1 ) == float( op2 ) ):
                         op1 = "true"
                     else:
@@ -1410,16 +1451,17 @@ def line_handler( key_word, args, i ):
                 op1 = float( op1 )
                 op1t = "float"
             else:
-                exit( 58 ) #je to spravne ?
+                exit( 53 ) #je to spravne ?
         # FLOAT2INT ⟨var⟩ ⟨symb⟩ Převod float na číslo
         # Float hodnota ⟨symb⟩ je dle Unicode převedena na int.
         # Není-li ⟨symb⟩ validní float hodnota, dojde k chybě 58.
         elif( key_word == "FLOAT2INT" ):
             if( op1t == "float" ):
+                op1, op2 = getFloat( op1, op2 )
                 op1 = int( op1 )
                 op1t = "int"
             else:
-                exit( 58 ) #je to spravne ?
+                exit( 53 ) #je to spravne ?
         writeTo( to_frame, op1, op1t )
     # BREAK Výpis stavu interpretu nastderr
     # Předpokládá se, že na standardní chybový výstup (stderr) vypíše 
@@ -1449,7 +1491,7 @@ def line_handler( key_word, args, i ):
                 line = ''
                 writeTo( to_frame, line, "nil" )
                 stop = 1
-            line = line[ :-1 ]
+            line = line.rstrip()
         else:
             # kontroluje EOF
             try:
@@ -1469,7 +1511,7 @@ def line_handler( key_word, args, i ):
             elif( rtype == "string" ):
                 if( line == '' ):
                     line = ''
-                    writeTo( to_frame, line, "string" )
+                    writeTo( to_frame, line, "str" )
                 else:
                     writeTo( to_frame, line, "str" )
             elif( rtype == "bool" ):
@@ -1482,6 +1524,13 @@ def line_handler( key_word, args, i ):
                     else:
                         line = "false"
                     writeTo( to_frame, line, "bool" )
+            elif( rtype == "float" ):
+                if( line == '' ):
+                    line = ''
+                    writeTo( to_frame, line, "float" )
+                else:
+                    line = float.fromhex( line )
+                    writeTo( to_frame, line, "float" )
         else:
             ...
     # PUSHS ⟨symb⟩ Vlož hodnotu na vrchol datového zásobníku
@@ -1514,6 +1563,11 @@ def line_handler( key_word, args, i ):
                     exit( 54 )
             if( data_type is None ):
                 exit( 56 )
+        if( data_type == "float" ):
+            try:
+                what = float.fromhex( what )
+            except:
+                ...
         push_element.append( what )
         push_element.append( data_type )
         PUSHS.append( push_element )
@@ -1631,12 +1685,12 @@ root = tree.getroot()
 program = root.tag
 
 if( program != 'program' ):
-    exit( 105 )
+    exit( 32 )
 
 header = root.attrib
 
 if( header[ 'language' ] != "IPPcode20" ):
-    exit( 105 )
+    exit( 32 )
 
 instructions = []
 
@@ -1668,6 +1722,10 @@ for child in root:
     if( str( child.tag ) != "instruction" ):
         exit( 32 )
     # jestlize order uz byl pouzit nebo byl mensi nez 0
+    try:
+        int( child.attrib[ 'order' ] )
+    except:
+        exit( 32 )
     if( ( int( child.attrib[ 'order' ] ) in TESTING ) or ( int( child.attrib[ 'order' ] ) < 0 ) ):
         exit( 32 )
     TESTING[ int( child.attrib[ 'order' ] ) ] = child
@@ -1679,9 +1737,30 @@ for child in root:
 for element in sorted( TESTING.keys() ):
     instruction = []
     instruction.append( int( element ) )
-    instruction.append( TESTING[ element ].attrib[ 'opcode' ] )
+    try:
+        instruction.append( TESTING[ element ].attrib[ 'opcode' ] )
+    except:
+        exit( 32 )
+    for supr in TESTING[ element ].attrib:
+        if( supr == "opcode" ):
+            ...
+        elif( supr == "order" ):
+            ...
+        else:
+            exit( 32 )
     order_inc = order_inc + 1
+    counter = len( TESTING[ element ] )
     for test in TESTING[ element ]:
+        if( test.tag == "arg1" ):
+            ...
+        elif( test.tag == "arg2" ):
+            ...
+        elif( test.tag == "arg3" ):
+            ...
+        else:
+            exit( 32 )
+        if( int( test.tag[ 3: ] ) > counter ):
+            exit( 32 )
         ARGS[ test.tag[ 3: ] ] = test
     args = []
     for test in sorted( ARGS.keys() ):
