@@ -102,7 +102,7 @@ def params():
             if Path( source ).is_file():
                 ...
             else:
-                exit( 11 )
+                sys.exit( 11 )
             # kontroluji jake parametry byly zadany
             entered = entered + 1
         elif( re.search( '^(\-){2}input=', arg ) ):
@@ -110,7 +110,7 @@ def params():
             if Path( input_file ).is_file():
                 input_is = "file"
             else:
-                exit( 11 )
+                sys.exit( 11 )
             entered = entered + 1
         elif( re.search( '^(\-){2}stats=', arg ) ):
             stati_file = arg.split( "=" )[ 1 ]
@@ -123,20 +123,20 @@ def params():
             if( count == 0 ):
                 ...
             else:
-                exit( 10 )
+                sys.exit( 10 )
         count += 1
 
     # jestlize bylo zadano --help, nesmi byt zadan zadny jiny argument
     if( ( help == 1 ) and entered >= 1 ):
-        exit( 10 )
+        sys.exit( 10 )
     
     # jestlize nebyly zadany zadne parametry koncim s 10
     elif( entered == 0 ):
-        exit( 10 )
+        sys.exit( 10 )
     
     # jestlize neni zadane --testlist=, ale --vars nebo --insts je, koncim s chybou 
     if( STATI == 0 and extension == 1 ):
-        exit( 10 )
+        sys.exit( 10 )
 
 # -----------------------------------------------------------
 # Funkce convertor
@@ -159,13 +159,13 @@ def convertor( argument ):
                 try:
                     converted = chr( int( convert ) )
                 except:
-                    exit( 105 )
+                    sys.exit( 105 )
             else:
                 convert = argument[ position + 1 ] + argument[ position + 2 ] + argument[ position + 3 ]
                 try:
                     converted = chr( int( convert ) )
                 except:
-                    exit( 105 )
+                    sys.exit( 105 )
             # nahrazuji znaky \ddd za jedena znak a zbytek mezery
             argument[ position ] = converted
             argument[ position + 1 ] = ''
@@ -175,6 +175,16 @@ def convertor( argument ):
     # zmenim list zpet na string
     argument = ''.join( argument )
     return( argument )
+
+def getFromStack():
+    try:
+        op1 = PUSHS.pop()
+        op1t = op1[ 1 ]
+        op1 = op1[ 0 ]
+    except:
+        sys.exit( 56 )
+    op1 = getValue( op1 )
+    return ( op1, op1t )
 
 # -----------------------------------------------------------
 # Funkce checkRegisters
@@ -259,7 +269,7 @@ def well_formatted( source ):
     try:
         xml = ET.fromstring( source )
     except:
-        exit( 31 )
+        sys.exit( 31 )
 
 # -----------------------------------------------------------
 # Funkce at_split
@@ -294,13 +304,13 @@ def varExists( frame, var ):
 
     if( frame == "GF" ):
         if not var in GF:
-            exit( 54 )
+            sys.exit( 54 )
     elif( frame == "LF" ):
         if not var in LF:
-            exit( 54 )
+            sys.exit( 54 )
     elif( frame == "TF" ):
         if not var in TF:
-            exit( 54 )
+            sys.exit( 54 )
 
 # -----------------------------------------------------------
 # Funkce getFromFrame
@@ -313,7 +323,11 @@ def varExists( frame, var ):
 # Return obsah promenne
 # -----------------------------------------------------------
 def getFromFrame( frame, variable ):
+    #if( frame == "LF" ):
+        #print( "1",frame,variable )
     varExists( frame, variable )
+    #if( frame == "LF" ):
+        #print( "2",frame,variable )
     frameExists( frame )
     if ( frame == "GF" ):
         return ( GF[ variable ] )
@@ -336,7 +350,7 @@ def frameExists( frame ):
     global lf_accessible
 
     if( ( frame == "TF" and tf_accessible == 0 ) or ( frame == "LF" and lf_accessible == 0 ) ):
-        exit( 55 )
+        sys.exit( 55 )
 
 # -----------------------------------------------------------
 # Funkce writeTo
@@ -350,11 +364,10 @@ def frameExists( frame ):
 # Return none
 # -----------------------------------------------------------
 def writeTo( where, content, data_type ):
-    
     frame, variable = at_split( where )
     frameExists( frame )
     varExists( frame, variable )
-    
+ 
     if( data_type is str ):
         data_type = "str"
     if( frame == "GF" ):
@@ -364,6 +377,10 @@ def writeTo( where, content, data_type ):
         TF[ variable ] = content
         TFT[ variable ] = data_type
     elif( frame == "LF" ):
+        if( content == "LF@delta" ):
+            print( LF )
+            print( where, content, data_type )
+        #print( content, data_type )
         LF[ variable ] = content
         LFT[ variable ] = data_type
 
@@ -379,7 +396,7 @@ def writeTo( where, content, data_type ):
 # -----------------------------------------------------------
 def missingValue( op1, op2 ):
     if( op1 == '' or op2 == '' ):
-        exit( 56 )
+        sys.exit( 56 )
 
 # -----------------------------------------------------------
 # Funkce checkVar, checkSymb, checkInt, checkFloat, checkString, checkBool, checkNil, checkType
@@ -392,44 +409,44 @@ def missingValue( op1, op2 ):
 # -----------------------------------------------------------
 def checkVar( argument ):
     if ( not ( re.search( '^((TF)|(GF)|(LF))@((\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?)|([a-zA-Z]))(\d*|([a-zA-Z])|(\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?))*$', argument ) ) ):
-        exit( 32 )
+        sys.exit( 32 )
 
 def checkSymb( argument ):
     if( argument == None ):
         return
     if ( not ( re.search( '(int@((\-)|(\+)){0,1}(0-9)+)$|(bool@((true)|(false)))$|^((GF)|(TF)|(LF))@(\S)*$|^(nil)@nil$|^string@(\S)*$', argument ) ) ):
-        exit( 32 )
+        sys.exit( 32 )
     elif( not ( re.search( '([^#\s\\\\]|\\\\[0-9]{3})*$', argument ) ) ):
-        exit( 32 )
+        sys.exit( 32 )
 
 def checkInt( argument ):
     if ( not ( re.search( '^((\-)|(\+)){0,1}(\d)*$', argument ) ) ):
-        exit( 32 )
+        sys.exit( 32 )
 
 def checkFloat( argument ):
     try:
         float.fromhex( argument )
     except:
-        exit( 32 )
+        sys.exit( 32 )
 
 
 def checkString( argument ):
     if( argument == None ):
         return
     if ( not ( re.search( '^([^#\s\\\\]|\\\\[0-9]{3})*$', argument ) ) ):
-        exit( 32 )
+        sys.exit( 32 )
 
 def checkBool( argument ):
     if ( not ( re.search( '^((true)|(false))$', argument ) ) ):
-        exit( 32 )
+        sys.exit( 32 )
 
 def checkNil( argument ):
     if ( not ( re.search( '^nil$', argument ) ) ):
-        exit( 32 )
+        sys.exit( 32 )
 
 def checkType( argument ):
     if( not ( argument == "int" or argument == "bool" or argument == "string" ) ):
-        exit( 32 )
+        sys.exit( 32 )
 
 # -----------------------------------------------------------
 # Funkce getBool
@@ -467,7 +484,8 @@ def check_args( args, expected ):
     
     # jestlize nemaji stejnou velikost, jedna se o chybu
     elif( maxe == 0 and maxa != 0 ):
-        exit( 53 )
+        print( "480" )
+        sys.exit( 53 )
 
     while ( i < maxa ):
         if( expected[ i ] == "var" ):
@@ -505,9 +523,9 @@ def check_args( args, expected ):
 # -----------------------------------------------------------
 def getValue( argument ):
     if( argument is None ):
-        return
+        return argument
     # jedna se o ramec
-    if( re.search( '^((TF)|(GF)|(LF))@((\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?)|([a-zA-Z]))(\d*|([a-zA-Z])|(\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?))*$', argument ) ):
+    if( re.search( '^((TF)|(GF)|(LF))@((\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?)|([a-zA-Z]))(\d*|([a-zA-Z])|(\_)|(\-)|(\$)|(\&)|(\%)|(\*)|(\!)|(\?))*$', str( argument ) ) ):
         frame, variable = at_split( argument )
         frameExists( frame )
         code = getFromFrame( frame, variable )
@@ -517,10 +535,16 @@ def getValue( argument ):
 
 def getFloat( op1, op2 ):
     try:
+        #print( op1,"op11" )
+        op1 = getValue( op1 )
+        #print( op1,"op12" )
         op1 = float.fromhex( op1 )
     except:
         ...
     try:
+        #print( op2,"op21" )
+        op2 = getValue( op2 )
+        #print( op2, "op22" )
         op2 = float.fromhex( op2 )
     except:
         ...
@@ -621,7 +645,7 @@ def jump( label, i ):
     if( label in LABEL ):
         return( LABEL[ label ] )
     else:
-        exit( 52 )
+        sys.exit( 52 )
 
 # -----------------------------------------------------------
 # Funkce labelThing
@@ -646,7 +670,7 @@ def labelThing( key_word, args, i ):
         check_args( args, [ 'label' ] )
         label = args[ 0 ][ 1 ]
         if( label in LABEL ):
-            exit( 52 )
+            sys.exit( 52 )
         else:
             LABEL[ label ] = i
     return i
@@ -717,18 +741,18 @@ def line_handler( key_word, args, i ):
             frameExists( frame )
             if( frame == "GF" ):
                 if variable in GF:
-                    exit( 52 )
+                    sys.exit( 52 )
                 GF[ variable ] = ''
             elif( frame == "TF" ):
                 if variable in TF:
-                    exit( 52 )
+                    sys.exit( 52 )
                 TF[ variable ] = ''
             elif( frame == "LF" ):
                 if variable in LF:
-                    exit( 52 )
+                    sys.exit( 52 )
                 LF[ variable ] = ''
             else:
-                exit( 55 )
+                sys.exit( 55 )
         # POPS ⟨var⟩ Vyjmi hodnotu z vrcholu datového zásobníku
         # Není-li zásobník prázdný, vyjme z něj hodnotu a uloží ji do proměnné⟨var⟩, jinak dojde k chybě 56.
         elif( key_word == "POPS" ):
@@ -738,7 +762,7 @@ def line_handler( key_word, args, i ):
                 data_type = content[ 1 ]
                 content = content[ 0 ]
             except:
-                exit( 56 )
+                sys.exit( 56 )
             writeTo( to_frame[ 1 ], content, data_type )
     # MOVE ⟨var⟩ ⟨symb⟩ Přiřazení hodnoty do proměnné
     # Zkopíruje hodnotu ⟨symb⟩ do ⟨var⟩. Např.MOVE LF@par GF@var provede zkopírování hodnoty proměnné var v globálním rámci do proměnné par v lokálním rámci.
@@ -749,11 +773,16 @@ def line_handler( key_word, args, i ):
             # kam zapisi
             if( word[ 0 ] == "var" and count == 1 ):
                 to_frame = word[ 1 ]
+                wtf = word
             else:
                 content = getValue( word[ 1 ] )
                 data_type = getType( word )
+                if( to_frame == "LF@delta" ):
+                    ...
+                    #print( "!@@!" )
+                    #print( to_frame, content, data_type, word )
                 if( content == '' and data_type is None ):
-                    exit( 56 )
+                    sys.exit( 56 )
             # jestlize existuje datovy typ
             if( data_type != '' ):
                 if ( content == "nil" ):
@@ -761,16 +790,19 @@ def line_handler( key_word, args, i ):
                     data_type = "nil"
                 if( data_type == "str" and content is None ):
                     content = ''
+                elif( data_type == "str" ):
+                    content = convertor( content )
                 if( data_type == "float" ):
                     try:
                         content = float.fromhex( content )
                     except:
                         ...
+                #print( content, data_type )
                 writeTo( to_frame, content, data_type )
     # LABELY resim pri prvnim pruchodu, takze zde uz nic nedelaji
     elif( key_word == "LABEL" ):
         ...
-    elif( key_word == "JUMPIFEQ" or key_word == "JUMPIFNEQ" ):
+    elif( key_word == "JUMPIFEQ" or key_word == "JUMPIFNEQ" or key_word == "JUMPIFEQS" or key_word == "JUMPIFNEQS" ):
         # zpracovani vstupnich argumentu
         for word in args:
             if( word[ 0 ] == "label" and count == 0 ):
@@ -796,33 +828,43 @@ def line_handler( key_word, args, i ):
         if( label in LABEL ):
             ...
         else:
-            exit( 52 )
+            sys.exit( 52 )
         if ( ( ( firstT != secondT ) or ( secondT != firstT  ) ) ):
             if( ( firstT is None or secondT is None ) or ( firstT == "nil" or secondT == "nil" ) ):
                 ...
             else:
-                exit( 53 )
+                print( "817" )
+                sys.exit( 53 )
         # JUMPIFEQ ⟨label⟩ ⟨symb1⟩ ⟨symb2⟩ Podmíněný skok na návěští při rovnosti
         # Pokud jsou⟨symb1⟩a⟨symb2⟩stejného typu nebo je některý operand nil (jinak chyba 53) azároveň se jejich hodnoty rovnají, tak provede skok na návěští⟨label⟩.
-        if( key_word == "JUMPIFEQ" ):
+        if( key_word == "JUMPIFEQ" or key_word == "JUMPIFEQS" ):
+            if( key_word == "JUMPIFEQS" ):
+                first, firstT = getFromStack()
+                second, secondT = getFromStack()
             if( first == "nil" or second == "nil" ):
                 if( first == "nil" and second == "nil" ):
                     # zvysuji pocitadlo, protoze skocim o jedno klicove slovo nad LABEL
                     instruction_counter += 1
                     return( jump( label, i ) )
+            elif( firstT != secondT ):
+                if( key_word == "JUMPIFEQS" ):
+                    print( "832" )
+                    sys.exit( 53 )
+                else:
+                    sys.exit( 56 )
             elif( firstT is None and secondT is None ):
                 if( first == second ):
                     instruction_counter += 1
                     return( jump( label, i ) )
             elif( firstT == "int" or secondT == "int" ):
                 if( secondT is None or firstT is None ):
-                    exit( 56 )
+                    sys.exit( 56 )
                 elif( int( first ) == int( second ) ):
                     instruction_counter += 1
                     return( jump( label, i ) )
             elif( firstT == "float" or secondT == "float" ):
                 if( secondT is None or firstT is None ):
-                    exit( 56 )
+                    sys.exit( 56 )
                 elif( firstT == "float" or secondT == "float" ):
                     first, second = getFloat( first, second )
                     instruction_counter += 1
@@ -846,27 +888,36 @@ def line_handler( key_word, args, i ):
                     return( jump( label, i ) )
         # JUMPIFNEQ ⟨label⟩ ⟨symb1⟩ ⟨symb2⟩ Podmíněný skok na návěští při nerovnosti
         # Jsou-li⟨symb1⟩a⟨symb2⟩stejného typu nebo je některý operand nil (jinak chyba 53), tak v případě různých hodnot provede skok na návěští⟨label⟩
-        elif( key_word == "JUMPIFNEQ" ):
+        elif( key_word == "JUMPIFNEQ" or key_word == "JUMPIFNEQS" ):
+            if( key_word == "JUMPIFNEQS" ):
+                first, firstT = getFromStack()
+                second, secondT = getFromStack()
             if( first == "nil" or second == "nil" ):
                 if( first == "nil" and second == "nil" ):
                     ...
                 else:
                     instruction_counter += 1
                     return( jump( label, i ) )
+            elif( firstT != secondT ):
+                if( key_word == "JUMPIFNEQS" ):
+                    print( "881" )
+                    sys.exit( 53 )
+                else:
+                    sys.exit( 56 )
             elif( firstT is None and secondT is None ):
                 if( first != second ):
                     instruction_counter += 1
                     return( jump( label, i ) )
             elif( firstT == "int" or secondT == "int" ):
                 if( secondT is None or firstT is None ):
-                    exit( 56 )
+                    sys.exit( 56 )
                 elif( int( first ) != int( second ) ):
                     instruction_counter += 1
                     return( jump( label, i ) )
             elif( firstT == "float" or secondT == "float" ):
                 first, second = getFloat( first, second )
                 if( secondT is None or firstT is None ):
-                    exit( 56 )
+                    sys.exit( 56 )
                 elif( firstT == "float" or secondT == "float" ):
                     instruction_counter += 1
                     return( jump( label, i ) )
@@ -907,7 +958,7 @@ def line_handler( key_word, args, i ):
             # vracim se na vrchni hodnotu ze zasobniku volani
             return( int( CALL_STACK.pop() ) )
         except:
-            exit( 56 )
+            sys.exit( 56 )
     # WRITE ⟨symb⟩
     # Výpis hodnoty na standardní výstup Vypíše hodnotu ⟨symb⟩ na standardní výstup. Až na typ bool a hodnotu nil@nil je formát
     # výpisu kompatibilní s příkazem print jazyka Python 3 s doplňujícím parametrem end=''(za-mezí dodatečnému odřádkování). 
@@ -919,7 +970,9 @@ def line_handler( key_word, args, i ):
                 var = getValue( word[ 1 ] )
                 data_type = getType( word[ 1 ] )
                 if( var == '' and data_type is None ):
-                    exit( 56 )
+                    sys.exit( 56 )
+                if( data_type == "string" ):
+                    var = convertor( var )
                 if( data_type == "float" ):
                     try:
                         print( hex( var ), end='' )
@@ -969,7 +1022,7 @@ def line_handler( key_word, args, i ):
                     secondT = typeT
             else:
                 if ( count == 1 ):
-                    exit( 105 )
+                    sys.exit( 105 )
                 content = getValue( word[ 1 ] )
                 data_type = getType( word )
                 if( count == 2 ):
@@ -979,9 +1032,14 @@ def line_handler( key_word, args, i ):
                     second = content
                     secondT = data_type
         if( firstT is None or secondT is None ):
-            exit( 56 )
+            sys.exit( 56 )
         if( not ( firstT == secondT ) ):
-            exit( 53 )
+            if( firstT == '' or secondT == '' ):
+                ...
+            else:
+                print( first, second )
+                print( "1019" )
+                sys.exit( 53 )
         if( not( first is None and second is None ) ):
             first = first + second
         else:
@@ -1017,20 +1075,24 @@ def line_handler( key_word, args, i ):
         # Zjistí počet znaků (délku) řetězce v ⟨symb⟩ a tato délka je uložena jako celé číslo do ⟨var⟩.
         if( key_word == "STRLEN" ):
             if( firstT is None ):
-                exit( 56 )
+                sys.exit( 56 )
             if( firstT != "str" ):
-                exit( 53 )
+                print( "1050" )
+                sys.exit( 53 )
             if( first is None ):
                 heej = 0
             else:
                 heej = len( first )
             result = heej
             if( word[ 1 ] == "int" ):
-                exit( 53 )
+                print( "1057" )
+                sys.exit( 53 )
             elif( word[ 1 ] == "string" ):
-                exit( 53 )
+                print( "1060" )
+                sys.exit( 53 )
             elif( word[ 1 ] == "bool" ):
-                exit( 53 )
+                print( "1063" )
+                sys.exit( 53 )
             firstT = "int"
             writeTo( to_frame, result, firstT )
         # TYPE ⟨var⟩ ⟨symb⟩ Zjisti typ daného symbolu 
@@ -1057,18 +1119,19 @@ def line_handler( key_word, args, i ):
             code = getValue( word[ 1 ] )
             data_type = getType( word[ 1 ] )
             if( code == '' and data_type == "nil" ):
-                exit( 53 )
+                print( "1088" )
+                sys.exit( 53 )
             if( code == '' and data_type == None ):
-                exit( 56 )
+                sys.exit( 56 )
             if( not code ):
-                exit( 56 )
+                sys.exit( 56 )
             if ( getType( word ) != "int" ):
-                exit( 53 )
+                sys.exit( 53 )
             if( int( code ) >= 0 and int( code ) <= 49 ):
                 writeStats()
-                exit( int( code ) )
+                sys.exit( int( code ) )
             else:
-                exit( 57 )
+                sys.exit( 57 )
     # DPRINT ⟨symb⟩ Výpis hodnoty nastderr
     # Předpokládá se, že vypíše zadanou hodnotu ⟨symb⟩ na standardní chybový výstup (stderr).
     elif( key_word == "DPRINT" ): 
@@ -1076,7 +1139,10 @@ def line_handler( key_word, args, i ):
             code = getValue( word[ 1 ] )
             sys.stderr.write( str( code ) )
     elif( key_word == "ADD" or key_word == "SUB" or key_word == "MUL" or key_word == "IDIV" or key_word == "LT" or key_word == "GT" or key_word == "EQ"
-          or key_word == "AND" or key_word == "OR" or key_word == "NOT" or key_word == "STRI2INT" or key_word == "GETCHAR" or key_word == "SETCHAR" or key_word == "DIV" ):
+          or key_word == "AND" or key_word == "OR" or key_word == "NOT" or key_word == "STRI2INT" or key_word == "GETCHAR" or key_word == "SETCHAR" 
+          or key_word == "DIV" or key_word == "ADDS" or key_word == "ANDS" or key_word == "SUBS" or key_word == "ORS" or key_word == "MULS" 
+          or key_word == "IDIVS" or key_word == "CLEARS" or key_word == "LTS" or key_word == "GTS" or key_word == "EQS" or key_word == "NOTS" 
+          or key_word == "STRI2INTS" ):
         check_args( args, [ 'var','symb', 'symb' ] )
         for word in args:
             if( count == 0 ):
@@ -1088,7 +1154,70 @@ def line_handler( key_word, args, i ):
                 op2 = getValue( word[ 1 ] )
                 op2t = getType( word )
             count += 1
-        
+
+        if( key_word == "CLEARS" ):
+            PUSHS.clear()
+            return i 
+
+        elif( key_word == "ADDS" or key_word == "SUBS" or key_word == "MULS" or key_word == "IDIVS" ):
+            push_element = []
+            op1, op1t = getFromStack()
+            op2, op2t = getFromStack()
+
+            if( op1t == op2t ):
+                if( op1t == "int" ):
+                    if( key_word == "ADDS" ):
+                        op1 = int( op1 ) + int( op2 )
+                    elif( key_word == "SUBS" ):
+                        op1 =  int( op2 ) - int( op1 )
+                    elif( key_word == "MULS" ):
+                        op1 =  int( op1 ) * int( op2 )
+                    elif( key_word == "IDIVS" ):
+                        op1 =  int( op2 ) // int( op1 )
+                elif( op2t == "float" ):
+                    if( key_word == "ADDS" ):
+                        op1 = float( op1 ) + float( op2 )
+                    elif( key_word == "SUBS" ):
+                        op1 = float( op2 ) - float( op1 )
+                    elif( key_word == "MULS" ):
+                        op1 = float( op1 ) * float( op2 )
+                    else:
+                        sys.exit( 32 )
+            else:
+                print( "1152" )
+                sys.exit( 53 )
+            push_element.append( op1 )
+            push_element.append( op1t )
+            PUSHS.append( push_element )
+            return i
+        elif( key_word == "ANDS" or key_word == "ORS" ):
+            push_element = []
+            op1, op1t = getFromStack() 
+            op2, op2t = getFromStack()
+
+            op1, op2 = convert( op1, op2 )
+
+            if( op1t == op2t and op1t == "bool" ):
+                op1 = getBool( op1 )
+                op2 = getBool( op2 )
+                if( key_word == "ANDS" ):
+                    op1 = op1 and op2
+                else:
+                    op1 = op1 or op2
+                if( op1 == True ):
+                    op1 = "true"
+                else:
+                    op1 = "false"
+            else:
+                print( "1176" )
+                sys.exit( 53 )
+            op1t = "bool"
+
+            push_element.append( op1 )
+            push_element.append( op1t )
+            PUSHS.append( push_element )
+            return i
+
         # ADD ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Součet dvou číselných hodnot
         # Sečte ⟨symb1⟩ a ⟨symb2⟩ (musí být typu int) a výslednou hodnotu téhož typu uloží do proměnné ⟨var⟩.
         if( key_word == "ADD" ):
@@ -1096,7 +1225,7 @@ def line_handler( key_word, args, i ):
             if( op1t == op2t and op1t == "int" or op1t == "float" ):
                 if( op1t == "float" ):
                     if( op2t != "float" ):
-                        exit( 53 )
+                        sys.exit( 53 )
                     op1, op2 = getFloat( op1, op2 )
                     op1 = float( op1 ) + float( op2 )
                     op1t = "float"
@@ -1104,7 +1233,7 @@ def line_handler( key_word, args, i ):
                     op1 = int( op1 ) + int( op2 )
                     op1t = "int"
             else:
-                exit( 53 )
+                sys.exit( 53 )
         # SUB ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Odečítání dvou číselných hodnot
         # Odečte ⟨symb2⟩ od ⟨symb1⟩ (musí být typu int) a výslednou hodnotu téhož typu uloží do proměnné ⟨var⟩.
         elif( key_word == "SUB"  ):
@@ -1119,9 +1248,9 @@ def line_handler( key_word, args, i ):
                         op1 = float( op1 ) - float( op2 )
                         op1t = "float"
                     else:
-                        exit( 53 )
+                        sys.exit( 53 )
             else:
-                exit( 53 )
+                sys.exit( 53 )
         # MUL ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Násobení dvou číselných hodnot
         # Vynásobí ⟨symb1⟩ a ⟨symb2⟩ (musí být typu int) a výslednou hodnotu téhož typu uloží do proměnné ⟨var⟩.
         elif( key_word == "MUL" ):
@@ -1132,22 +1261,22 @@ def line_handler( key_word, args, i ):
                     op1t = "int"
                 elif( op1t == "float" ):
                     if( op2t != "float" ):
-                        exit( 53 )
+                        sys.exit( 53 )
                     op1, op2 = getFloat( op1, op2 )
                     op1 = float( op1 ) * float( op2 )
                     op1t = "float"
             else:
-                exit( 53 )
+                sys.exit( 53 )
         elif( key_word == "DIV" ):
             missingValue( op1, op2 )
             if( op1t == op2t and op1t == "float" ):
                 op1, op2 = getFloat( op1, op2 )
                 if( float( op2 ) == 0 ):
-                    exit( 57 )
+                    sys.exit( 57 )
                 op1 = float( op1 ) / float( op2 )
                 op1 = float( op1 )
             else:
-                exit( 53 )
+                sys.exit( 53 )
             op1t = "float"
         # IDIV ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Dělení dvou celočíselných hodnot
         # Celočíselně podělí celočíselnou hodnotu ze ⟨symb1⟩ druhou celočíselnou hodnotou ze ⟨symb2⟩ (musí být oba typu int) a výsledek typu int přiřadí do proměnné ⟨var⟩. 
@@ -1156,22 +1285,28 @@ def line_handler( key_word, args, i ):
             missingValue( op1, op2 )
             if( op1t == op2t and op1t == "int" ):
                 if( int( op2 ) == 0 ):
-                    exit( 57 )
+                    sys.exit( 57 )
                 op1 = int( op1 ) / int( op2 )
                 op1 = int( op1 )
             else:
-                exit( 53 )
+                sys.exit( 53 )
             op1t = "int"
         # LT/GT/EQ ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Relační operátory menší, větší, rovno 
         # Instrukce vyhodnotí relační operátor mezi ⟨symb1⟩ a ⟨symb2⟩ (stejného typu; int, bool nebo string) a do ⟨var⟩ zapíše výsledek typu 
         # bool (false při neplatnosti nebo true v případě platnosti odpovídající relace). Řetězce jsou porovnávány lexikograficky a false je menší než true. 
         # S operandem typu nil (další zdrojový operand je libovolného typu) lze porovnávat pouze instrukcí EQ, jinak chyba 53.
-        elif( key_word == "LT" ):
+        elif( key_word == "LT" or key_word == "LTS" ):
+            
+            if( key_word == "LTS" ):
+                push_element = []
+                op2, op2t = getFromStack()
+                op1, op1t = getFromStack() 
+
             missingValue( op1, op2 )
             if( op1t == "nil" or op2t == "nil" ):
-                exit( 53 )
+                sys.exit( 53 )
             if( ( op1t is None ) or ( op2t is None ) ):
-                exit( 53 )
+                sys.exit( 53 )
             if( op1t == op2t ):
                 vysledek = ''
                 poradi = 0
@@ -1212,16 +1347,27 @@ def line_handler( key_word, args, i ):
                     else:
                         op1 = "false"
             else:
-                exit( 53 )
+                sys.exit( 53 )
             op1t = "bool"
+            if( key_word == "LTS" ):
+                push_element.append( op1 )
+                push_element.append( op1t )
+                PUSHS.append( push_element )
+                return i
                         
-        elif( key_word == "GT" ):
+        elif( key_word == "GT" or key_word == "GTS" ):
+            
+            if( key_word == "GTS" ):
+                push_element = []
+                op2, op2t = getFromStack() 
+                op1, op1t = getFromStack()
+
             missingValue( op1, op2 )
             if( op1t == "nil" or op2t == "nil" ):
-                exit( 53 )
+                sys.exit( 53 )
 
             if( ( op1t is None ) or ( op2t is None ) ):
-                exit( 53 )
+                sys.exit( 53 )
             if( op1t == op2t ):
                 vysledek = ''
                 poradi = 0
@@ -1260,13 +1406,22 @@ def line_handler( key_word, args, i ):
                     else:
                         op1 = "false"
             else:
-                exit( 53 )
+                sys.exit( 53 )
             op1t = "bool"
-        elif( key_word == "EQ" ):
+            if( key_word == "GTS" ):
+                push_element.append( op1 )
+                push_element.append( op1t )
+                PUSHS.append( push_element )
+                return i
+        elif( key_word == "EQ" or key_word == "EQS" ):
+            if( key_word == "EQS" ):
+                push_element = []
+                op2, op2t = getFromStack()                
+                op1, op1t = getFromStack()
             if( op1t == "nil" or op2t == "nil" ):
                 ...
             elif( op1t is None or op2t is None ):
-                exit( 56 )
+                sys.exit( 56 )
             else:
                 ...
             
@@ -1306,8 +1461,13 @@ def line_handler( key_word, args, i ):
                     else:
                         op1 = "false"
             else:
-                exit( 53 )
+                sys.exit( 53 )
             op1t = "bool"
+            if( key_word == "EQS" ):
+                push_element.append( op1 )
+                push_element.append( op1t )
+                PUSHS.append( push_element )
+                return i
         # AND/OR/NOT ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Základní booleovské operátory
         # Aplikuje konjunkci (logické A)/disjunkci (logické NEBO) na operandy typu bool ⟨symb1⟩ a ⟨symb2⟩ nebo negaci na ⟨symb1⟩ (NOT má pouze 2 operandy) a výsledek typu bool zapíše do ⟨var⟩.
         elif( key_word == "AND" ):
@@ -1324,7 +1484,7 @@ def line_handler( key_word, args, i ):
                 else:
                     op1 = "false"
             else:
-                exit( 53 )
+                sys.exit( 53 )
             op1t = "bool"
         elif( key_word == "OR" ):
             missingValue( op1, op2 )
@@ -1337,12 +1497,16 @@ def line_handler( key_word, args, i ):
                 else:
                     op1 = "false"
             else:
-                exit( 53 )
+                sys.exit( 53 )
             op1t = "bool"
-        elif( key_word == "NOT" ):
-            data_type = getType( word[ 1 ] )
+        elif( key_word == "NOT" or key_word == "NOTS" ):
+            if( key_word == "NOT" ):
+                data_type = getType( word[ 1 ] )
+            if( key_word == "NOTS" ):
+                push_element = []
+                op1, op1t = getFromStack()
             if( data_type == "nil" ):
-                exit( 53 )
+                sys.exit( 53 )
             missingValue( op1, op2 )
             if( op1t == "bool" ):
                 op1 = getBool( op1 )
@@ -1353,33 +1517,47 @@ def line_handler( key_word, args, i ):
                 else:
                     op1 = "false"
             else:
-                exit( 53 )
+                sys.exit( 53 )
             op1t = "bool"
+            if( key_word == "NOTS" ):
+                push_element.append( op1 )
+                push_element.append( op1t )
+                PUSHS.append( push_element )
+                return i
         # STRI2INT ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Ordinální hodnota znaku
         # Do ⟨var⟩ uloží ordinální hodnotu znaku (dle Unicode) v řetězci ⟨symb1⟩ na pozici ⟨symb2⟩ (indexováno od nuly). 
         # Indexace mimo daný řetězec vede na chybu 58. Viz funkce ord v Python 3.
-        elif( key_word == "STRI2INT" ):
+        elif( key_word == "STRI2INT" or key_word == "STRI2INTS" ):
+            if( key_word == "STRI2INTS" ):
+                push_element = []
+                op2, op2t = getFromStack()
+                op1, op1t = getFromStack()
             if( ( op2t is None ) or ( op1t is None ) ):
-                exit( 56 )
+                sys.exit( 56 )
             if( ( op1t != "str" and op1 == "nil" ) or ( op2t != "int" and op2 == "nil" ) or ( op1t != "str" and op1 != "nil" ) or ( op2t != "int" and op2 != "nil" ) ):
-                exit( 53 )
+                sys.exit( 53 )
             if( int( op2 ) < 0 ):
-                exit( 58 )
+                sys.exit( 58 )
             try:
                 op1 = ord( op1[ int( op2 ) ] )
             except:
-                exit( 58 )
+                sys.exit( 58 )
             op1t = "int"
+            if( key_word == "STRI2INTS" ):
+                push_element.append( op1 )
+                push_element.append( op1t )
+                PUSHS.append( push_element )
+                return i
         # GETCHAR ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Vrať znak řetězce 
         # Do ⟨var⟩ uloží řetězec z jednoho znaku v řetězci ⟨symb1⟩ na pozici ⟨symb2⟩ (indexováno celýmčíslem od nuly). Indexace mimo daný řetězec vede na chybu 58.
         elif( key_word == "GETCHAR" ):
             sample = len( op1 )
             if( op1 == '' or op2 == '' ):
-                exit( 56 )
+                sys.exit( 56 )
             if( ( op1t != "str" ) or ( op2t != "int" ) ):
-                exit( 53 )
+                sys.exit( 53 )
             if( sample <= int( op2 ) or int( op2 ) < 0 ):
-                exit( 58 )
+                sys.exit( 58 )
             op1 = op1[ int( op2 ) ]
             op1t = "str"
         # SETCHAR ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩ Změň znak řetězce
@@ -1389,33 +1567,33 @@ def line_handler( key_word, args, i ):
             sentence = getValue( to_frame )
             sentenceT = getType( to_frame )
             if( sentenceT is None ):
-                exit( 56 )
+                sys.exit( 56 )
             if( sentenceT != "str" ):
-                exit( 53 )
+                sys.exit( 53 )
             sentence = list( sentence )
             sentence_length = len ( sentence )
             if( op2 == '' ):
-                exit( 56 )
+                sys.exit( 56 )
             if( op1 == "nil" ):
-                exit( 53 )
+                sys.exit( 53 )
             if( op1t is None ):
-                exit( 56 )
+                sys.exit( 56 )
             if( op2 is None ):
-                exit( 58 )
+                sys.exit( 58 )
             if( op1t != "int" ):
-                exit( 53 )
+                sys.exit( 53 )
             if( sentence_length <= int( op1 ) or int( op1 ) < 0 ):
-                exit( 58 )
+                sys.exit( 58 )
             if( op1t != "int" ):
-                exit( 53 )
+                sys.exit( 53 )
             if( op2t != "str" ):
-                exit( 53 )
+                sys.exit( 53 )
             op1, op2 = convert( op1, op2 )
             sentence[ int( op1 ) ] = op2[ 0 ]
             op1 = ''.join( sentence )
             op1t = "str"
         writeTo( to_frame, op1, op1t )
-    elif( key_word == "INT2CHAR" or key_word == "INT2FLOAT" or key_word == "FLOAT2INT" ):
+    elif( key_word == "INT2CHAR" or key_word == "INT2FLOAT" or key_word == "FLOAT2INT" or key_word == "INT2CHARS" ):
         check_args( args, [ 'var','symb' ] )
         
         ip1 = 0
@@ -1429,20 +1607,28 @@ def line_handler( key_word, args, i ):
                 op1t = getType( word )
             count += 1
         if( op1t == "nil" ):
-            exit( 53 )
+            sys.exit( 53 )
         if( op1 == "" ):
-            exit( 56 )
+            sys.exit( 56 )
         # INT2CHAR ⟨var⟩ ⟨symb⟩ Převod celého čísla na znak
         # Číselná hodnota ⟨symb⟩ je dle Unicode převedena na znak, který tvoří jednoznakový řetězec přiřazený do ⟨var⟩. 
         # Není-li ⟨symb⟩ validní ordinální hodnota znaku v Unicode (viz funkce chr v Python 3), dojde k chybě 58.
-        if( key_word == "INT2CHAR" ):
+        if( key_word == "INT2CHAR" or key_word == "INT2CHARS" ):
+            if( key_word == "INT2CHARS" ):
+                push_element = []
+                op1, op1t = getFromStack()
             if( op1t != "int" ):
-                exit( 53 )
+                sys.exit( 53 )
             try:
                 op1 = chr( int( op1 ) )
                 op1t = "str"
             except:
-                exit( 58 )
+                sys.exit( 58 )
+            if( key_word == "INT2CHARS" ):
+                push_element.append( op1 )
+                push_element.append( op1t )
+                PUSHS.append( push_element )
+                return i
         # INT2FLOAT ⟨var⟩ ⟨symb⟩ Převod čísla na float
         # Číselná hodnota ⟨symb⟩ je dle Unicode převedena na float.
         # Není-li ⟨symb⟩ validní ciselna hodnota, dojde k chybě 58.
@@ -1451,7 +1637,7 @@ def line_handler( key_word, args, i ):
                 op1 = float( op1 )
                 op1t = "float"
             else:
-                exit( 53 ) #je to spravne ?
+                sys.exit( 53 ) #je to spravne ?
         # FLOAT2INT ⟨var⟩ ⟨symb⟩ Převod float na číslo
         # Float hodnota ⟨symb⟩ je dle Unicode převedena na int.
         # Není-li ⟨symb⟩ validní float hodnota, dojde k chybě 58.
@@ -1461,7 +1647,7 @@ def line_handler( key_word, args, i ):
                 op1 = int( op1 )
                 op1t = "int"
             else:
-                exit( 53 ) #je to spravne ?
+                sys.exit( 53 ) #je to spravne ?
         writeTo( to_frame, op1, op1t )
     # BREAK Výpis stavu interpretu nastderr
     # Předpokládá se, že na standardní chybový výstup (stderr) vypíše 
@@ -1554,20 +1740,21 @@ def line_handler( key_word, args, i ):
         if( check == 1 ):
             if( frame == "GF" ):
                 if not var in GF:
-                    exit( 54 )
+                    sys.exit( 54 )
             elif( frame == "LF" ):
                 if not var in LF:
-                    exit( 54 )
+                    sys.exit( 54 )
             elif( frame == "TF" ):
                 if not var in TF:
-                    exit( 54 )
+                    sys.exit( 54 )
             if( data_type is None ):
-                exit( 56 )
+                sys.exit( 56 )
         if( data_type == "float" ):
             try:
                 what = float.fromhex( what )
             except:
                 ...
+        what = getValue( what )
         push_element.append( what )
         push_element.append( data_type )
         PUSHS.append( push_element )
@@ -1603,7 +1790,7 @@ def line_handler( key_word, args, i ):
             if( len( FRAME_STACK ) != 0 ):
                 lf_accessible = 1
         else:
-            exit( 55 )
+            sys.exit( 55 )
     # POPFRAME Přesun aktuálního rámce do dočasného
     # Přesuň vrcholový rámec LF ze zásobníku rámců do TF. 
     # Pokud žádný rámec v LF není k dispozici, dojde k chybě 55.
@@ -1611,7 +1798,7 @@ def line_handler( key_word, args, i ):
         check_args( args, [] )
         values = len( FRAME_STACK )
         if( len( FRAME_STACK ) == 0 ):
-            exit( 55 )
+            sys.exit( 55 )
         tf_accessible = 1
         TF = LF.copy()
         TFT = LFT.copy()
@@ -1623,7 +1810,7 @@ def line_handler( key_word, args, i ):
         else:
             lf_accessible = 0  
     else:
-        exit( 32 )
+        sys.exit( 32 )
     return i
 
 # -----------------------------------------------------------
@@ -1685,12 +1872,12 @@ root = tree.getroot()
 program = root.tag
 
 if( program != 'program' ):
-    exit( 32 )
+    sys.exit( 32 )
 
 header = root.attrib
 
 if( header[ 'language' ] != "IPPcode20" ):
-    exit( 32 )
+    sys.exit( 32 )
 
 instructions = []
 
@@ -1716,18 +1903,18 @@ for arg in root.attrib:
     elif( arg == "description" ):
         ...
     else:
-        exit( 32 )
+        sys.exit( 32 )
 
 for child in root:
     if( str( child.tag ) != "instruction" ):
-        exit( 32 )
+        sys.exit( 32 )
     # jestlize order uz byl pouzit nebo byl mensi nez 0
     try:
         int( child.attrib[ 'order' ] )
     except:
-        exit( 32 )
+        sys.exit( 32 )
     if( ( int( child.attrib[ 'order' ] ) in TESTING ) or ( int( child.attrib[ 'order' ] ) < 0 ) ):
-        exit( 32 )
+        sys.exit( 32 )
     TESTING[ int( child.attrib[ 'order' ] ) ] = child
 
 
@@ -1740,14 +1927,14 @@ for element in sorted( TESTING.keys() ):
     try:
         instruction.append( TESTING[ element ].attrib[ 'opcode' ] )
     except:
-        exit( 32 )
+        sys.exit( 32 )
     for supr in TESTING[ element ].attrib:
         if( supr == "opcode" ):
             ...
         elif( supr == "order" ):
             ...
         else:
-            exit( 32 )
+            sys.exit( 32 )
     order_inc = order_inc + 1
     counter = len( TESTING[ element ] )
     for test in TESTING[ element ]:
@@ -1758,9 +1945,9 @@ for element in sorted( TESTING.keys() ):
         elif( test.tag == "arg3" ):
             ...
         else:
-            exit( 32 )
+            sys.exit( 32 )
         if( int( test.tag[ 3: ] ) > counter ):
-            exit( 32 )
+            sys.exit( 32 )
         ARGS[ test.tag[ 3: ] ] = test
     args = []
     for test in sorted( ARGS.keys() ):
@@ -1770,7 +1957,7 @@ for element in sorted( TESTING.keys() ):
         if( ( typeT == "int" ) or ( typeT == "float" ) or ( typeT == "string" ) or ( typeT == "bool" ) or ( typeT == "nil" ) or ( typeT == "type" ) or ( typeT == "label" ) or ( typeT == "var" ) ):
             ...
         else:
-            exit( 32 )
+            sys.exit( 32 )
         arg_array.append( ARGS[ test ].text )
         args.append( arg_array )
     ARGS.clear()
