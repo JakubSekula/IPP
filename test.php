@@ -1,7 +1,7 @@
 <!--         
         Jakub Sekula
 
-     IPP - VUT-FIT 2020
+     IPP - VUT-FIT 2020 test.php
  -->
 
 <!DOCTYPE html>
@@ -131,10 +131,15 @@ mkdir( $nowRoute."/"."TmpTestFolder" );
 
 $testOutDir = $nowRoute."/"."TmpTestFolder";
 
-/* 
-** Funkce vypise html tabulku ve ktere je videt ktere parametry byly predany skriptu
-*/
-
+# -----------------------------------------------------------
+# Funkce writeParams
+#
+# Parametr none
+#
+# Funkce projde vsechny parametry zadane skriptu a vypise prehlednou html tabulku, kde je viditelne, jake parametry byly skriptu zadane 
+#
+# Return none
+# -----------------------------------------------------------
 function writeParams(){
     global $parsescript;
     global $directory;
@@ -202,10 +207,15 @@ function writeParams(){
 
 }
 
-/* 
-** Na konec se vypise pocet projitych testu a jejich uspesnost
-*/
-
+# -----------------------------------------------------------
+# Funkce writeStats
+#
+# Parametr none
+#
+# Funkce vypise na konci behu skriptu statistiky prubehu testu
+#
+# Return none
+# -----------------------------------------------------------
 function writeStats(){
     global $successful;
     global $failed;
@@ -239,10 +249,15 @@ echo "</div>";
 echo "</div>";
 }
 
-/*
-** Nasledujici funkce slouzi k zmene pripon souboru
-*/
-
+# -----------------------------------------------------------
+# Funkce outToSrc, rcTosrc, srcToin, inToOut, outToRc, srcToOut
+#
+# Parametr cesta k souboru
+#
+# Funkce zmeni koncovku souboru
+#
+# Return cesta k souboru se zmenenou koncovkou
+# -----------------------------------------------------------
 function outToSrc( $File ){
     return ( $File = preg_replace( '/\.out/', '.src', $File ) );
 }
@@ -267,11 +282,15 @@ function srcToOut( $File ){
     return ( $File = preg_replace( '/\.src/', '.out', $File ) );
 }
 
-/*
-** Funkce addFile otevira vstupni soubry, pokud nejsou vytvari je
-** parametr je puvodni slozka s testem
-*/
-
+# -----------------------------------------------------------
+# Funkce addFiles
+#
+# Parametr cesta k souboru
+#
+# Pri zadani testu musi byt ve slozce testu soubor .src a ostatni pokud nejsou, se musi dogenerovat 
+#
+# Return cesta k souboru se zmenenou koncovkou
+# -----------------------------------------------------------
 function addFiles( $origFile ){
     $origFile = srcToin( $origFile );
     if ( !file_exists( "$origFile" ) ){
@@ -291,11 +310,18 @@ function addFiles( $origFile ){
     return;
 }
 
-/*
-** writeSucces zapisuje html kod pro uspesny kod
-** parametry jsou vystup z parseru, slozka s testy pro porovnani, ocekavana navratova hodnota, return hodnota parseru
-*/
-
+# -----------------------------------------------------------
+# Funkce writeSucces
+#
+# Parametr parseOut soubor s vystupem parseru
+# Parametr cmpFile soubor s ocekavanym vystupem 
+# Parametr expectedRv soubor s ocekavanym rc kodem
+# Parametr parseRv soubor s rc parseru
+#
+# Vypisuje html kod pro uspesny test 
+#
+# Return none
+# -----------------------------------------------------------
 function writeSucces( $parseOut, $cmpFile, $expectedRv, $parseRv ){
     global $successful;
     $successful++;
@@ -310,11 +336,18 @@ function writeSucces( $parseOut, $cmpFile, $expectedRv, $parseRv ){
     echo    "</tr>";
 }
 
-/*
-** writeError je opak funkce writeSucces
-* parametry jsou slozka s testy, slozka pro porovnani, ocekavana return value a parser return value
-*/
-
+# -----------------------------------------------------------
+# Funkce writeError
+#
+# Parametr parseFile soubor s vystupem parseru
+# Parametr cmpFile soubor s ocekavanym vystupem 
+# Parametr expectedRv soubor s ocekavanym rc kodem
+# Parametr parseRv soubor s rc parseru
+#
+# Vypisuje html kod pro neuspesny test 
+#
+# Return none
+# -----------------------------------------------------------
 function writeError( $parseFile, $cmpFile, $expectedRv, $parseRv ){
     global $failed;
     $failed++;
@@ -332,11 +365,18 @@ function writeError( $parseFile, $cmpFile, $expectedRv, $parseRv ){
     echo    "</tr>";
 }
 
-/*
-** checkJexamxml kontroluje vystupy pomoci nastroje jexam
-** parametry jsou vystup parseru, ocekavany vystup, ocekavana return value a parser return value
-*/
-
+# -----------------------------------------------------------
+# Funkce checkJexamxml
+#
+# Parametr parseFile soubor s vystupem parseru
+# Parametr cmpFile soubor s ocekavanym vystupem 
+# Parametr expectedRv soubor s ocekavanym rc kodem
+# Parametr parseRv soubor s rc parseru
+#
+# Funkce provede porovnani vystupu v xml podobe s ocekavanym xml pomoci nastroje jexaxml a vypise odpovidaji html vystup
+#
+# Return none
+# -----------------------------------------------------------
 function checkJexamxml( $parseFile, $cmpFile, $expectedRv, $parseRv ){
     global $jexamxml;
     global $successful;
@@ -361,11 +401,17 @@ function checkJexamxml( $parseFile, $cmpFile, $expectedRv, $parseRv ){
     echo    "</tr>";
 }
 
-/*
-** provede pruchod interpretem
-** parametry jsou input soubor, ouput soubor a in soubor
-*/
-
+# -----------------------------------------------------------
+# Funkce testInterpret
+#
+# Parametr source src soubor interpretu
+# Parametr output soubor s vystupem parseru 
+# Parametr in soubor se vstupem interpretu
+#
+# Funkce spusti skript interpretu a vysledny rc zapise do souboru
+#
+# Return navratovy kod 
+# -----------------------------------------------------------
 function  testInterpret( $source, $output, $in ){
     global $intscript;
     $command = "python3 $intscript"." --input=$in"." < $source > $output";
@@ -377,11 +423,17 @@ function  testInterpret( $source, $output, $in ){
     return $rv;
 }
 
-/*
-** funkce testuje ocekavan hodnotu a hodnotu testu a potom vypisuje bud uspesny test nebo test, ktery selhal
-** parametry jsou slozka s testy, slozka s ocekavanymi vystupy a navratova hodnota z testu
-*/
-
+# -----------------------------------------------------------
+# Funkce testRc
+#
+# Parametr testPath cesta k prave provadenemu testu
+# Parametr file soubor s vystupem 
+# Parametr rv return code interpretu  
+#
+# Funkce otestuje vysledek vyslednou navratovou hodnotu, pokud jsou obe 0 tak se pomoci nastroje diff. Funkce se pouziva pro vystup interpretu.
+#
+# Return none 
+# -----------------------------------------------------------
 function testRc( $testPath, $file, $rv ){
     $input = srcToOut( $testPath );
     $testPath = outToRc( $input );
@@ -408,11 +460,17 @@ function testRc( $testPath, $file, $rv ){
     } 
 }
 
-/*
-** getRv provadi zapis return hodnot do slozek pripadne do in .rc souboru doplni 0 
-** parametry jsou originalni slozka navratovy kod parseru a vystup parseru
-*/
-
+# -----------------------------------------------------------
+# Funkce getRv
+#
+# Parametr origFile cesta k prave provadenemu testu
+# Parametr parseRv soubor s return kodem parseru
+# Parametr parseOut soubor s vysledkem parseru v xml podobe  
+#
+# Funkce spusti skript interpretu a vysledny rc zapise do souboru
+#
+# Return navratovy kod 
+# -----------------------------------------------------------
 function getRv( $origFile, $parseRv, $parseOut ){
     global $parseonly;
     $origFile = preg_replace( '/\.src/', '.rc', $origFile );
@@ -459,11 +517,15 @@ function getRv( $origFile, $parseRv, $parseOut ){
     
 }
 
-/*
-** existsRcFile doplni do input rc souboru 0 pokud je prazdny
-** parametr je originialni soubor
-*/
-
+# -----------------------------------------------------------
+# Funkce existsRcFile
+#
+# Parametr origFile cesta k prave provadenemu testu
+#
+# Funkce slouzi pro zjisteni, jestli existuje .rc soubor, jestlize neexistuje tak ho vytvori a zapise do nej 0. 0 taky zapise, jestli je .rc soubor prazdny
+#
+# Return none 
+# -----------------------------------------------------------
 function existsRcFile( $origFile ){
     $origFile = preg_replace( '/\.src/', '.rc', $origFile );
     $rvFile = fopen( $origFile, "a+" );
@@ -475,11 +537,16 @@ function existsRcFile( $origFile ){
     fclose( $rvFile );
 }
 
-/*
-** funkce provede command
-** parametry jsou prikaz a vystupni soubor
-*/
-
+# -----------------------------------------------------------
+# Funkce executeCommand
+#
+# Parametr command je string, ktery obsahuje prikaz, ktery chceme provest
+# Parametr outFile cesta k souboru, kam ulozim vystup funkce exec()
+#
+# Funkce slouzi pro zjisteni, jestli existuje .rc soubor, jestlize neexistuje tak ho vytvori a zapise do nej 0. 0 taky zapise, jestli je .rc soubor prazdny
+#
+# Return none 
+# -----------------------------------------------------------
 function executeCommand( $command, $outFile ){
     exec( $command, $out, $rv );
     $file = preg_replace( '/\.out/', '.rc', $outFile );
@@ -489,10 +556,16 @@ function executeCommand( $command, $outFile ){
     return $rv;
 }
 
-/*
-** testThis testuje konkretni soubor
-*/
-
+# -----------------------------------------------------------
+# Funkce testThis
+#
+# Parametr testPath cesta k souboru s testy
+# Parametr file cesta k souboru se soucasnym testem
+#
+# Funkce zpracuje cestu k souboru s testy, pak podle zadanych argumentu bud testuje parser nebo interpret
+#
+# Return none 
+# -----------------------------------------------------------
 function testThis( $testPath, $file ){
     global $testOutDir;
     global $parsescript;
@@ -507,7 +580,10 @@ function testThis( $testPath, $file ){
         $arr = explode( ".", $file, 2 );
         $filef = $arr[ 0 ];
         $match_regex = $match_regex;
-        if( !preg_match( '/'.$match_regex.'/i', $file ) ){
+        if( @preg_match( $match_regex, NULL ) === false ){
+            exit( 10 ); 
+        }
+        if( !preg_match( $match_regex, $filef ) ){
             return;
         }
     }
@@ -534,10 +610,17 @@ function testThis( $testPath, $file ){
     }
 }
 
-/*
-** goOver prochazi adresare
-*/
-
+# -----------------------------------------------------------
+# Funkce goOver
+#
+# Parametr directory cesta k testum
+# Parametr recursive zadany parametr --recursive
+#
+# Funkce kontroluje jestli je v directory cesta k souboru nebo samotny .src soubor a podle toho bude vola funkci pro soubor nebo pro adresar.
+# Funkce take pri zadanem parametru --recursive prochazi adresar a jestli najde slozku, tak se zavola znova na sebe s toutu slozkou
+#
+# Return none 
+# -----------------------------------------------------------
 function goOver( $directory, $recursive ){
 
     if( is_dir( $directory ) ){
@@ -550,7 +633,7 @@ function goOver( $directory, $recursive ){
         testThis( $directory, $file );
         return;
     } else {
-        exit( 10 ); #navratovy ?
+        exit( 10 ); 
     }
 
     foreach( $adresar as $file ){

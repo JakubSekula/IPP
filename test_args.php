@@ -81,6 +81,7 @@ if ( $argc > 1 ){
             $match_regex = substr( $current, $pos + 1 );
         } else {
             // jine argumenty jsou chybou
+            print('84\n');
             exit( 10 );
         }
     }
@@ -89,6 +90,7 @@ if ( $argc > 1 ){
 // jestlize je zadan --help musi byt jediny parametr
 if ( $argc > 2 ){
     if ( $help_argument == 1 ){
+        print('92\n');
         exit( 10 );
     }
 }
@@ -100,10 +102,13 @@ if ( $help_argument == 1 ){
 
 // kombinace parametru ktere spolu nemohou byt
 if ( $parseonly == 1 && ( $intonly == 1 || $intscript != "interpret.py" ) ){
+    print('104\n');
     exit( 10 );
 } elseif( $intonly == 1 && ( $parseonly == 1 || $intscript != "interpret.py" ) ){
+    print('107\n');
     exit( 10 );
 } elseif( $directory != "." && $testlist != '' ){
+    print('110\n');
     exit( 10 );
 }
 // jestlize soubor neexistuje 
